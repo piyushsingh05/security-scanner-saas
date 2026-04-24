@@ -1,4 +1,4 @@
-package com.securityscanner.security_scanner;
+package com.securityscanner;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
