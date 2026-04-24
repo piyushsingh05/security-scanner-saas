@@ -19,5 +19,9 @@ public class WebsiteScan {
     private String domain;
     private String status;
     private Integer score;
+    private Boolean httpsEnabled;
     private LocalDateTime createdAt;
+    private Boolean xFrameOptionsEnabled;
+    private Boolean cspEnabled;
+    private Boolean hstsEnabled;
 }
