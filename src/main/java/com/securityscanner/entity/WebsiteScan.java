@@ -18,5 +18,6 @@ public class WebsiteScan {
     private Long id;
     private String domain;
     private String status;
+    private Integer score;
     private LocalDateTime createdAt;
 }
