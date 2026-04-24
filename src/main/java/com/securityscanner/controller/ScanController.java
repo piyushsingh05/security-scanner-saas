@@ -17,7 +17,7 @@ public class ScanController {
 
     private final ScanService _scanService;
     @PostMapping
-    public WebsiteScan createScan( @RequestBody ScanRequest request){
+    public WebsiteScan createScan( @Valid @RequestBody ScanRequest request){
         System.out.println("DOMAIN = " + request.getDomain());
         return _scanService.createScan(request);
     }
