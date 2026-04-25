@@ -17,11 +17,16 @@ public class ScanService {
 
     private final WebsiteScanRepository _websiteScanRepository;
 
+    private final PdfReportService _pdfReportService;
 
-    private HttpURLConnection createConnection(String domain)
-            throws Exception {
+    private final HttpsCheckService _httpsCheckService;
 
+    private final HeaderCheckService  _headerCheckService;
+
+
+    private HttpURLConnection createConnection(String domain) throws Exception {
         URL url = new URL("https://" + domain);
+
         HttpURLConnection connection =
                 (HttpURLConnection) url.openConnection();
 
@@ -33,11 +38,12 @@ public class ScanService {
     }
 
     public WebsiteScan createScan(ScanRequest request){
+        System.out.println("PDF generation started...");
         String domain = request.getDomain();
-        boolean httpsEnabled = checkHttps(request.getDomain());
-        boolean xFrame = hasHeader(domain, "X-Frame-Options");
-        boolean csp = hasHeader(domain, "Content-Security-Policy");
-        boolean hsts = hasHeader(domain, "Strict-Transport-Security");
+        boolean httpsEnabled = _httpsCheckService.checkHttps(request.getDomain());
+        boolean xFrame =  _headerCheckService.hasHeader(domain, "X-Frame-Options");
+        boolean csp =   _headerCheckService.hasHeader(domain, "Content-Security-Policy");
+        boolean hsts =  _headerCheckService.hasHeader(domain, "Strict-Transport-Security");
         int score = 0;
 
         if (httpsEnabled) score += 40;
@@ -55,26 +61,13 @@ public class ScanService {
                 .status("COMPLETED")
                 .createdAt(LocalDateTime.now())
                 .build();
-        return _websiteScanRepository.save(scan);
+        WebsiteScan savedScan = _websiteScanRepository.save(scan);
+
+        _pdfReportService.generateReport(savedScan);
+
+        System.out.println("PDF saved successfully!");
+
+        return savedScan;
     }
 
-    private boolean checkHttps(@NotBlank String domain) {
-        try {
-            HttpURLConnection connection =
-                    createConnection(domain);
-
-            return connection.getResponseCode() == 200;
-        }catch (Exception e){
-            return false;
-        }
-    }
-
-    private boolean hasHeader(String domain, String headerName) {
-        try{
-            HttpURLConnection connection = createConnection(domain);
-            return connection.getHeaderField(headerName) != null;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }
