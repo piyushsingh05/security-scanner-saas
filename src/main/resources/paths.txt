@@ -1,0 +1,14 @@
+/admin
+/login
+/swagger-ui
+/actuator
+/robots.txt
+/.env
+/phpinfo.php
+/phpmyadmin
+/backup
+/dev
+/test
+/staging
+/config
+/api-docs

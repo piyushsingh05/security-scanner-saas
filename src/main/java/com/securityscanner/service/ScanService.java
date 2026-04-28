@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,33 +24,24 @@ public class ScanService {
 
     private final HeaderCheckService  _headerCheckService;
 
+    private final ScoreCalculator _scoreCalculator;
 
-    private HttpURLConnection createConnection(String domain) throws Exception {
-        URL url = new URL("https://" + domain);
-
-        HttpURLConnection connection =
-                (HttpURLConnection) url.openConnection();
-
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(3000);
-        connection.connect();
-
-        return connection;
-    }
+    private final SensitiveEndpointService _sensitiveEndpointService;
 
     public WebsiteScan createScan(ScanRequest request){
-        System.out.println("PDF generation started...");
         String domain = request.getDomain();
+
+        List<String> exposedEndpoints =
+                _sensitiveEndpointService.findExposedEndpoints(domain);
+
+        System.out.println("Exposed Endpoints: " + exposedEndpoints);
         boolean httpsEnabled = _httpsCheckService.checkHttps(request.getDomain());
         boolean xFrame =  _headerCheckService.hasHeader(domain, "X-Frame-Options");
         boolean csp =   _headerCheckService.hasHeader(domain, "Content-Security-Policy");
         boolean hsts =  _headerCheckService.hasHeader(domain, "Strict-Transport-Security");
-        int score = 0;
-
-        if (httpsEnabled) score += 40;
-        if (xFrame) score += 20;
-        if (csp) score += 20;
-        if (hsts) score += 20;
+        int score = _scoreCalculator.calculateScore(httpsEnabled, xFrame, csp, hsts);
+        String endpoints =
+                String.join(", ", exposedEndpoints);
      //   int score = httpsEnabled ? 90 : 40;
         WebsiteScan scan = WebsiteScan.builder()
                 .domain(request.getDomain())
@@ -59,6 +51,7 @@ public class ScanService {
                 .hstsEnabled(hsts)
                 .score(score)
                 .status("COMPLETED")
+                .exposedEndpoints(endpoints)
                 .createdAt(LocalDateTime.now())
                 .build();
         WebsiteScan savedScan = _websiteScanRepository.save(scan);
@@ -70,4 +63,8 @@ public class ScanService {
         return savedScan;
     }
 
+
+    public List<WebsiteScan> getRecentScan() {
+        return _websiteScanRepository.findTop5ByOrderByCreatedAtDesc();
+    }
 }
