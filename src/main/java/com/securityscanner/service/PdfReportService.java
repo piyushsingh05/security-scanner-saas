@@ -1,66 +1,139 @@
 package com.securityscanner.service;
 
 import com.securityscanner.entity.WebsiteScan;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
-import org.springframework.stereotype.Service;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+/**
+ * Generates PDF reports in memory as byte arrays.
+ * No disk writes — safe for cloud deployments (Render, Railway, etc.)
+ * where the file system resets on every deploy.
+ */
 @Service
 public class PdfReportService {
+
+    private static final float MARGIN     = 50f;
+    private static final float PAGE_TOP   = 750f;
+    private static final float LINE_GAP   = 20f;
+
+    /**
+     * Returns PDF as byte array — used by ReportController for download.
+     */
+    public byte[] generateReportBytes(WebsiteScan scan) throws IOException {
+        try (PDDocument document = new PDDocument();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            buildPage(document, scan);
+            document.save(out);
+            return out.toByteArray();
+        }
+    }
+
+    /**
+     * Legacy method — kept for backward compat with ScanService.
+     * Now internally calls generateReportBytes.
+     */
     public String generateReport(WebsiteScan scan) {
-        String fileName = "report_" + scan.getId() + ".pdf";
+        try {
+            generateReportBytes(scan);
+            return "generated";
+        } catch (IOException e) {
+            throw new RuntimeException("PDF generation failed: " + e.getMessage(), e);
+        }
+    }
 
-        try (PDDocument document = new PDDocument()) {
+    private void buildPage(PDDocument document, WebsiteScan scan) throws IOException {
+        PDPage page = new PDPage();
+        document.addPage(page);
 
-            PDPage page = new PDPage();
-            document.addPage(page);
-
-            PDPageContentStream content =
-                    new PDPageContentStream(document, page);
-
+        try (PDPageContentStream content = new PDPageContentStream(document, page)) {
             content.beginText();
-            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
-            content.setLeading(16f);
-            content.newLineAtOffset(50, 750);
+            content.setLeading(LINE_GAP);
+            content.newLineAtOffset(MARGIN, PAGE_TOP);
 
-            content.showText("Website Security Audit Report");
+            // Title
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 18);
+            content.showText("SecuriScan - Security Audit Report");
+            content.newLine();
             content.newLine();
 
-            content.showText("Domain: " + scan.getDomain());
+            // Divider line simulation via spacing
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 10);
+            content.showText("-------------------------------------------------------------");
+            content.newLine();
             content.newLine();
 
-            content.showText("Score: " + scan.getScore());
+            // Domain + Score section
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
+            content.showText("Domain:   " + clean(scan.getDomain()));
             content.newLine();
 
-            content.showText("Status: " + scan.getStatus());
+            content.showText("Score:    " + scan.getScore() + " / 100");
             content.newLine();
 
-            content.showText("HTTPS Enabled: " + scan.getHttpsEnabled());
+            content.showText("Status:   " + clean(scan.getStatus()));
+            content.newLine();
             content.newLine();
 
-            content.showText("X-Frame-Options: " + scan.getXFrameOptionsEnabled());
+            // Security checks
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 11);
+            content.showText("Security Checks");
             content.newLine();
 
-            content.showText("CSP Enabled: " + scan.getCspEnabled());
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 11);
+            content.showText("  HTTPS Enabled:       " + yesNo(scan.getHttpsEnabled()));
+            content.newLine();
+            content.showText("  X-Frame-Options:     " + yesNo(scan.getXFrameOptionsEnabled()));
+            content.newLine();
+            content.showText("  CSP Enabled:         " + yesNo(scan.getCspEnabled()));
+            content.newLine();
+            content.showText("  HSTS Enabled:        " + yesNo(scan.getHstsEnabled()));
+            content.newLine();
             content.newLine();
 
-            content.showText("HSTS Enabled: " + scan.getHstsEnabled());
+            // Endpoints
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 11);
+            content.showText("Sensitive Endpoints");
             content.newLine();
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 11);
+            content.showText("  " + (scan.getExposedEndpoints() != null
+                    ? clean(scan.getExposedEndpoints())
+                    : "None found"));
+            content.newLine();
+            content.newLine();
+
+            // SSL
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 11);
+            content.showText("SSL Certificate");
+            content.newLine();
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 11);
+            content.showText("  " + clean(scan.getSslDetails()));
+            content.newLine();
+            content.newLine();
+
+            // Footer
+            content.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE), 9);
+            content.showText("Generated by SecuriScan | " + scan.getCreatedAt());
 
             content.endText();
-            content.close();
-
-            document.save(fileName);
-            System.out.println("PDF saved at: " + new java.io.File(fileName).getAbsolutePath());
-            return fileName;
-
-        } catch (IOException e) {
-            throw new RuntimeException("PDF generation failed");
         }
+    }
+
+    /** Strips non-ASCII characters (emoji etc.) that Helvetica cannot encode */
+    private String clean(String text) {
+        if (text == null) return "N/A";
+        return text.replaceAll("[^\\x00-\\x7F]", "").trim();
+    }
+
+    private String yesNo(Boolean val) {
+        if (val == null) return "Unknown";
+        return val ? "YES" : "NO";
     }
 }

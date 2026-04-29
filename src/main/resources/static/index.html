@@ -3,172 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Scanner Dashboard</title>
+    <title>SecuriScan – Security Scanner</title>
     <link rel="icon" href="/favicon.ico">
-
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg:        #080c14;
+            --surface:   #0d1320;
+            --surface2:  #111b2e;
+            --border:    rgba(99,179,255,0.10);
+            --border2:   rgba(99,179,255,0.18);
+            --accent:    #3b82f6;
+            --accent2:   #06b6d4;
+            --green:     #22c55e;
+            --red:       #ef4444;
+            --amber:     #f59e0b;
+            --text:      #e2e8f0;
+            --muted:     #64748b;
+            --mono:      'JetBrains Mono', monospace;
+            --sans:      'Syne', sans-serif;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #0f172a;
-            color: white;
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* grid background */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 0;
         }
 
         .layout {
             display: flex;
             min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
 
+        /* ── SIDEBAR ── */
         .sidebar {
-            width: 250px;
-            background: #111827;
-            padding: 30px 20px;
-            border-right: 1px solid rgba(255,255,255,0.08);
+            width: 240px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 28px 0;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         .logo {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 40px;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            padding: 0 24px 28px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
         }
 
         .menu {
+            padding: 20px 12px;
             display: flex;
             flex-direction: column;
-            gap: 18px;
+            gap: 4px;
+            flex: 1;
         }
 
         .menu a {
             text-decoration: none;
-            color: #cbd5e1;
-            padding: 12px;
+            color: var(--muted);
+            padding: 11px 14px;
             border-radius: 10px;
-            transition: 0.2s;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.18s;
+            letter-spacing: 0.2px;
         }
 
-        .menu a:hover {
-            background: rgba(255,255,255,0.08);
-            color: white;
+        .menu a:hover, .menu a.active {
+            background: rgba(59,130,246,0.12);
+            color: #93c5fd;
         }
 
+        .menu a .icon {
+            width: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .sidebar-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+            font-family: var(--mono);
+        }
+
+        /* ── MAIN ── */
         .main {
             flex: 1;
-            padding: 40px;
+            padding: 40px 48px;
+            max-width: 1100px;
         }
 
-        .top-bar {
-            margin-bottom: 35px;
+        .page-header {
+            margin-bottom: 36px;
         }
 
-        .top-bar h1 {
-            font-size: 32px;
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #f1f5f9;
         }
 
-        .scan-box,
-        .card,
-        .result,
-        .history {
-            background: #1e293b;
-            border-radius: 18px;
+        .page-header p {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 4px;
+            font-family: var(--mono);
         }
 
+        /* ── SCAN BOX ── */
         .scan-box {
-            padding: 25px;
-            margin-bottom: 30px;
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
-        input {
-            width: 70%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            margin-right: 10px;
+        .scan-prefix {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--accent2);
+            white-space: nowrap;
+            background: rgba(6,182,212,0.08);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(6,182,212,0.15);
         }
 
-        button {
-            padding: 15px 24px;
-            border: none;
-            border-radius: 12px;
-            background: #22c55e;
+        .scan-input {
+            flex: 1;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 15px;
+            font-family: var(--mono);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .scan-input:focus {
+            border-color: var(--accent);
+        }
+
+        .scan-input::placeholder { color: var(--muted); }
+
+        .scan-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
             color: white;
-            font-size: 16px;
-            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: var(--sans);
             cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.1s;
+            letter-spacing: 0.3px;
         }
 
-        button:hover {
-            background: #16a34a;
+        .scan-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .scan-btn:active { transform: translateY(0); }
+
+        .scan-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
         }
 
+        /* ── STATS ── */
         .stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 16px;
+            margin-bottom: 28px;
         }
 
-        .card {
-            padding: 25px;
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.2s;
         }
 
-        .card h3 {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 10px;
+        .stat-card:hover { border-color: var(--border2); }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
         }
 
-        .value {
-            font-size: 32px;
-            font-weight: bold;
-        }
-
-        .result {
-            padding: 30px;
-            display: none;
-            margin-bottom: 30px;
-        }
-
-        .result h2 {
-            margin-bottom: 20px;
-        }
-
-        .result p {
+        .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            color: var(--muted);
             margin-bottom: 12px;
-            font-size: 16px;
         }
 
-        .download-btn {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            background: #f59e0b;
-            color: white;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-weight: bold;
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #f1f5f9;
+            letter-spacing: -1px;
+            font-family: var(--mono);
         }
 
-        .history {
-            padding: 25px;
+        /* ── RESULT BOX ── */
+        .result {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            display: none;
+            margin-bottom: 28px;
+            animation: fadeIn 0.3s ease;
         }
 
-        .history h2 {
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .result-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .result-domain {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .score-badge {
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 800;
+            font-family: var(--mono);
+            border: 3px solid;
+            margin-bottom: 6px;
+        }
+
+        .score-a { border-color: var(--green); color: var(--green); }
+        .score-b { border-color: #84cc16; color: #84cc16; }
+        .score-c { border-color: var(--amber); color: var(--amber); }
+        .score-d { border-color: var(--red); color: var(--red); }
+
+        .grade-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        /* checks grid */
+        .checks-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
-        .history-item {
+        .check-item {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
         }
+
+        .check-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: 0.3px;
+        }
+
+        .check-val {
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--mono);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .check-val.pass { color: var(--green); }
+        .check-val.fail { color: var(--red); }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; }
+        .dot.pass { background: var(--green); }
+        .dot.fail { background: var(--red); }
+
+        /* full-width check items */
+        .check-full {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .check-full .check-label { margin-bottom: 6px; }
+
+        .check-full .check-detail {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--text);
+            word-break: break-all;
+            line-height: 1.6;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(245,158,11,0.12);
+            color: var(--amber);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-family: var(--mono);
+            font-weight: 600;
+            margin-right: 4px;
+        }
+
+        /* download btn */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            background: rgba(245,158,11,0.1);
+            color: var(--amber);
+            border: 1px solid rgba(245,158,11,0.25);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background: rgba(245,158,11,0.18);
+            border-color: rgba(245,158,11,0.4);
+        }
+
+        /* ── HISTORY ── */
+        .section-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+        }
+
+        .section-card h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 6px;
+        }
+
+        .section-subtitle {
+            font-size: 12px;
+            font-family: var(--mono);
+            color: var(--muted);
+            margin-bottom: 22px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th {
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 0 0 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .history-table td {
+            padding: 14px 0;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--mono);
+            vertical-align: middle;
+        }
+
+        .history-table tr:last-child td { border-bottom: none; }
+
+        .grade-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .grade-a { background: rgba(34,197,94,0.12); color: var(--green); }
+        .grade-b { background: rgba(132,204,22,0.12); color: #84cc16; }
+        .grade-c { background: rgba(245,158,11,0.12); color: var(--amber); }
+        .grade-d { background: rgba(239,68,68,0.12); color: var(--red); }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-family: var(--mono);
+        }
+
+        /* spinner */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        /* section visibility */
+        .section { display: none; }
+        .section.active { display: block; }
     </style>
 </head>
 <body>
@@ -177,66 +524,114 @@
 
     <!-- Sidebar -->
     <div class="sidebar">
-        <div class="logo">🔐 SecuriScan</div>
+        <div class="logo">
+            <div class="logo-icon">🔐</div>
+            SecuriScan
+        </div>
 
         <div class="menu">
-            <a onclick="showSection('dashboard')">Dashboard</a>
-            <a onclick="showSection('scan')">New Scan</a>
-            <a onclick="showSection('reports')">Reports</a>
-            <a onclick="showSection('history')">History</a>
-            <a onclick="showSection('settings')">Settings</a>
+            <a class="active" onclick="showSection('dashboard', this)">
+                <span class="icon">⬛</span> Dashboard
+            </a>
+            <a onclick="showSection('scan', this)">
+                <span class="icon">⚡</span> New Scan
+            </a>
+            <a onclick="showSection('history', this)">
+                <span class="icon">📋</span> History
+            </a>
+            <a onclick="showSection('reports', this)">
+                <span class="icon">📄</span> Reports
+            </a>
+            <a onclick="showSection('settings', this)">
+                <span class="icon">⚙</span> Settings
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            v1.0.0 · SecuriScan
         </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Main -->
     <div class="main">
 
-        <!-- Dashboard Section -->
-        <div id="dashboardSection">
-
-            <div class="top-bar">
+        <!-- Dashboard -->
+        <div id="dashboardSection" class="section active">
+            <div class="page-header">
                 <h1>Security Dashboard</h1>
+                <p>$ scan --target [domain] --full-audit</p>
             </div>
 
             <div class="scan-box">
+                <span class="scan-prefix">https://</span>
                 <input
+                        class="scan-input"
                         type="text"
                         id="domain"
-                        placeholder="Enter domain (example: google.com)"
+                        placeholder="google.com"
                 >
-
-                <button onclick="scanWebsite()">
-                    🚀 Scan Website
+                <button class="scan-btn" id="scanBtn" onclick="scanWebsite()">
+                    <span id="btnIcon">⚡</span>
+                    <span id="btnText">Run Scan</span>
                 </button>
             </div>
 
             <div class="stats">
-                <div class="card">
-                    <h3>Total Scans</h3>
-                    <div class="value" id="totalScans">0</div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Scans</div>
+                    <div class="stat-value" id="totalScans">—</div>
                 </div>
-
-                <div class="card">
-                    <h3>Average Score</h3>
-                    <div class="value" id="averageScore">0</div>
+                <div class="stat-card">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="averageScore">—</div>
                 </div>
-
-                <div class="card">
-                    <h3>Critical Sites</h3>
-                    <div class="value" id="criticalSites">0</div>
+                <div class="stat-card">
+                    <div class="stat-label">Critical Sites</div>
+                    <div class="stat-value" id="criticalSites">—</div>
                 </div>
             </div>
 
+            <!-- Result -->
             <div class="result" id="resultBox">
-                <h2>Security Audit Report</h2>
+                <div class="result-header">
+                    <div>
+                        <div class="result-title">Security Audit Report</div>
+                        <div class="result-domain" id="resultDomain"></div>
+                    </div>
+                    <div class="score-badge">
+                        <div class="score-circle" id="scoreCircle"></div>
+                        <div class="grade-label" id="gradeLabel"></div>
+                    </div>
+                </div>
 
-                <p><strong>Security Score:</strong> <span id="score"></span>/100</p>
-                <p><strong>Security Grade:</strong> <span id="grade"></span></p>
-                <p><strong>HTTPS:</strong> <span id="https"></span></p>
-                <p><strong>X-Frame-Options:</strong> <span id="xframe"></span></p>
-                <p><strong>CSP:</strong> <span id="csp"></span></p>
-                <p><strong>HSTS:</strong> <span id="hsts"></span></p>
-                <p><strong>Sensitive Endpoints:</strong> <span id="endpoints"></span></p>
+                <div class="checks-grid">
+                    <div class="check-item">
+                        <span class="check-label">HTTPS</span>
+                        <span class="check-val" id="https"></span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">X-Frame-Options</span>
+                        <span class="check-val" id="xframe"></span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">CSP</span>
+                        <span class="check-val" id="csp"></span>
+                    </div>
+                    <div class="check-item">
+                        <span class="check-label">HSTS</span>
+                        <span class="check-val" id="hsts"></span>
+                    </div>
+                </div>
+
+                <div class="check-full">
+                    <div class="check-label">Sensitive Endpoints</div>
+                    <div class="check-detail" id="endpoints">—</div>
+                </div>
+
+                <div class="check-full">
+                    <div class="check-label">SSL Details</div>
+                    <div class="check-detail" id="sslDetails">—</div>
+                </div>
 
                 <a id="downloadLink" class="download-btn">
                     📄 Download PDF Report
@@ -244,30 +639,54 @@
             </div>
         </div>
 
-        <!-- Reports Section -->
-        <div id="reportsSection" style="display:none;">
-            <div class="history">
-                <h2>Reports</h2>
-                <p>Generated PDF reports will appear here.</p>
+        <!-- History -->
+        <div id="historySection" class="section">
+            <div class="page-header">
+                <h1>Scan History</h1>
+                <p>$ history --all</p>
             </div>
-        </div>
-
-        <!-- History Section -->
-        <div id="historySection" style="display:none;">
-            <div class="history">
+            <div class="section-card">
                 <h2>Recent Scans</h2>
-
-                <div id="historyList">
-                    Loading recent scans...
-                </div>
+                <div class="section-subtitle">All previously scanned domains</div>
+                <table class="history-table">
+                    <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Score</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyList">
+                    <tr><td colspan="4"><div class="empty-state">Loading...</div></td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Settings Section -->
-        <div id="settingsSection" style="display:none;">
-            <div class="history">
-                <h2>Settings</h2>
-                <p>System settings and preferences.</p>
+        <!-- Reports -->
+        <div id="reportsSection" class="section">
+            <div class="page-header">
+                <h1>Reports</h1>
+                <p>$ reports --list</p>
+            </div>
+            <div class="section-card">
+                <h2>Generated Reports</h2>
+                <div class="section-subtitle">PDF reports are generated after each scan</div>
+                <div class="empty-state">Run a scan to generate your first report.</div>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div id="settingsSection" class="section">
+            <div class="page-header">
+                <h1>Settings</h1>
+                <p>$ config --show</p>
+            </div>
+            <div class="section-card">
+                <h2>System Configuration</h2>
+                <div class="section-subtitle">Preferences and scan settings — coming soon</div>
+                <div class="empty-state">Settings panel coming soon.</div>
             </div>
         </div>
 
@@ -275,96 +694,104 @@
 </div>
 
 <script>
+    function showSection(section, el) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.menu a').forEach(a => a.classList.remove('active'));
 
-    function showSection(section) {
-        document.getElementById("dashboardSection").style.display = "none";
-        document.getElementById("reportsSection").style.display = "none";
-        document.getElementById("historySection").style.display = "none";
-        document.getElementById("settingsSection").style.display = "none";
+        const map = {
+            dashboard: 'dashboardSection',
+            scan:      'dashboardSection',
+            history:   'historySection',
+            reports:   'reportsSection',
+            settings:  'settingsSection'
+        };
 
-        if (section === "dashboard" || section === "scan") {
-            document.getElementById("dashboardSection").style.display = "block";
-        }
+        document.getElementById(map[section]).classList.add('active');
+        if (el) el.classList.add('active');
 
-        if (section === "reports") {
-            document.getElementById("reportsSection").style.display = "block";
-        }
+        if (section === 'history') loadHistory();
+    }
 
-        if (section === "history") {
-            document.getElementById("historySection").style.display = "block";
-        }
-
-        if (section === "settings") {
-            document.getElementById("settingsSection").style.display = "block";
+    function setBoolCheck(id, val) {
+        const el = document.getElementById(id);
+        if (val) {
+            el.className = 'check-val pass';
+            el.innerHTML = '<span class="dot pass"></span> Yes';
+        } else {
+            el.className = 'check-val fail';
+            el.innerHTML = '<span class="dot fail"></span> No';
         }
     }
 
     async function scanWebsite() {
-        let domain = document.getElementById("domain").value.trim();
+        let domain = document.getElementById("domain").value.trim()
+            .replace(/https?:\/\//g, "")
+            .replace(/\//g, "");
 
-        domain = domain
-            .replace("https://", "")
-            .replace("http://", "")
-            .replace("/", "");
+        if (!domain) { alert("Please enter a domain"); return; }
 
-        if (!domain) {
-            alert("Please enter a domain");
-            return;
-        }
+        // loading state
+        const btn = document.getElementById("scanBtn");
+        document.getElementById("btnIcon").innerHTML = '<span class="spinner"></span>';
+        document.getElementById("btnText").innerText = "Scanning...";
+        btn.classList.add("loading");
 
         try {
             const response = await fetch("/api/scan", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    domain: domain
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ domain })
             });
 
             const data = await response.json();
 
-            document.getElementById("resultBox").style.display = "block";
-            document.getElementById("score").innerText = data.score;
+            // score circle
+            const score = data.score;
+            const circle = document.getElementById("scoreCircle");
+            circle.innerText = score;
+            circle.className = 'score-circle';
+            let gradeText = '';
+            if (score >= 90)      { circle.classList.add('score-a'); gradeText = 'Excellent'; }
+            else if (score >= 75) { circle.classList.add('score-b'); gradeText = 'Good'; }
+            else if (score >= 50) { circle.classList.add('score-c'); gradeText = 'Needs Work'; }
+            else                  { circle.classList.add('score-d'); gradeText = 'High Risk'; }
 
-            const gradeElement = document.getElementById("grade");
+            document.getElementById("gradeLabel").innerText = gradeText;
+            document.getElementById("resultDomain").innerText = '→ ' + domain;
 
-            if (data.score >= 90) {
-                gradeElement.innerText = "A 🟢 Excellent";
-            } else if (data.score >= 75) {
-                gradeElement.innerText = "B 🟡 Good";
-            } else if (data.score >= 50) {
-                gradeElement.innerText = "C 🟠 Needs Improvement";
+            // booleans
+            setBoolCheck("https", data.httpsEnabled);
+            setBoolCheck("xframe", data.xFrameOptionsEnabled);
+            setBoolCheck("csp", data.cspEnabled);
+            setBoolCheck("hsts", data.hstsEnabled);
+
+            // endpoints
+            const epEl = document.getElementById("endpoints");
+            if (data.exposedEndpoints) {
+                const parts = data.exposedEndpoints.split(",");
+                epEl.innerHTML = parts.map(p => `<span class="tag">${p.trim()}</span>`).join(" ");
             } else {
-                gradeElement.innerText = "D 🔴 High Risk";
+                epEl.innerHTML = '<span style="color: var(--green); font-weight:700">None found ✓</span>';
             }
 
-            document.getElementById("https").innerText =
-                data.httpsEnabled ? "Yes ✅" : "No ❌";
+            // SSL Details — THIS WAS MISSING
+            const sslEl = document.getElementById("sslDetails");
+            sslEl.innerText = data.sslDetails || "Not available";
 
-            document.getElementById("xframe").innerText =
-                data.xFrameOptionsEnabled ? "Yes ✅" : "No ❌";
+            // download
+            document.getElementById("downloadLink").href = "/api/report/" + data.id;
+            document.getElementById("resultBox").style.display = "block";
+            document.getElementById("resultBox").scrollIntoView({ behavior: "smooth" });
 
-            document.getElementById("csp").innerText =
-                data.cspEnabled ? "Yes ✅" : "No ❌";
-
-            document.getElementById("hsts").innerText =
-                data.hstsEnabled ? "Yes ✅" : "No ❌";
-
-            document.getElementById("endpoints").innerText =
-                data.exposedEndpoints
-                    ? "⚠ " + data.exposedEndpoints
-                    : "None ✅";
-
-            document.getElementById("downloadLink").href =
-                "/api/report/" + data.id;
-
-            loadHistory();
             loadStats();
 
         } catch (error) {
-            alert("Something went wrong");
+            alert("Scan failed. Check the console.");
+            console.error(error);
+        } finally {
+            document.getElementById("btnIcon").innerText = "⚡";
+            document.getElementById("btnText").innerText = "Run Scan";
+            btn.classList.remove("loading");
         }
     }
 
@@ -372,31 +799,31 @@
         try {
             const response = await fetch("/api/scan/history");
             const data = await response.json();
+            const tbody = document.getElementById("historyList");
 
-            const historyList = document.getElementById("historyList");
-            historyList.innerHTML = "";
+            if (!data.length) {
+                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No scans yet. Run your first scan above.</div></td></tr>';
+                return;
+            }
 
-            data.forEach(scan => {
-                let grade = "D 🔴";
+            tbody.innerHTML = data.map(scan => {
+                let grade = 'D', cls = 'grade-d';
+                if (scan.score >= 90)      { grade = 'A'; cls = 'grade-a'; }
+                else if (scan.score >= 75) { grade = 'B'; cls = 'grade-b'; }
+                else if (scan.score >= 50) { grade = 'C'; cls = 'grade-c'; }
 
-                if (scan.score >= 90) {
-                    grade = "A 🟢";
-                } else if (scan.score >= 75) {
-                    grade = "B 🟡";
-                } else if (scan.score >= 50) {
-                    grade = "C 🟠";
-                }
-
-                historyList.innerHTML += `
-                    <div class="history-item">
-                        <span>${scan.domain}</span>
-                        <span>${grade}</span>
-                    </div>
+                return `
+                    <tr>
+                        <td>${scan.domain}</td>
+                        <td>${scan.score}/100</td>
+                        <td><span class="grade-pill ${cls}">${grade}</span></td>
+                        <td>${scan.status || 'Completed'}</td>
+                    </tr>
                 `;
-            });
+            }).join('');
 
-        } catch (error) {
-            console.error("Failed to load history");
+        } catch (e) {
+            console.error("History load failed", e);
         }
     }
 
@@ -404,24 +831,16 @@
         try {
             const response = await fetch("/api/scan/stats");
             const data = await response.json();
-
-            document.getElementById("totalScans").innerText =
-                data.totalScans || 0;
-
-            document.getElementById("averageScore").innerText =
-                Math.round(data.averageScore || 0);
-
-            document.getElementById("criticalSites").innerText =
-                data.criticalSites || 0;
-
-        } catch (error) {
-            console.error("Failed to load stats");
+            document.getElementById("totalScans").innerText = data.totalScans ?? '—';
+            document.getElementById("averageScore").innerText = Math.round(data.averageScore || 0);
+            document.getElementById("criticalSites").innerText = data.criticalSites ?? '—';
+        } catch (e) {
+            console.error("Stats load failed", e);
         }
     }
 
-    loadHistory();
     loadStats();
-
+    loadHistory();
 </script>
 
 </body>

@@ -4,33 +4,52 @@ import org.springframework.stereotype.Service;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
+/**
+ * Fetches all security-relevant HTTP headers in a single connection.
+ * Avoids the overhead of one HTTP call per header check.
+ */
 @Service
 public class HeaderCheckService {
 
-    private HttpURLConnection createConnection(String domain) throws Exception {
-        URL url = new URL("https://" + domain);
+    private static final int TIMEOUT_MS = 5000;
 
-        HttpURLConnection connection =
-                (HttpURLConnection) url.openConnection();
+    /**
+     * Opens one connection and returns all headers as a map.
+     * Returns empty map on failure — callers treat missing = false.
+     */
+    public Map<String, String> fetchHeaders(String domain) {
+        Map<String, String> headers = new HashMap<>();
+        HttpURLConnection connection = null;
 
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(3000);
-        connection.connect();
-
-        return connection;
-    }
-
-
-    public boolean hasHeader(String domain, String headerName) {
         try {
-            HttpURLConnection connection =
-                    createConnection(domain);
+            URL url = new URL("https://" + domain);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("HEAD"); // HEAD is faster — no body needed
+            connection.setConnectTimeout(TIMEOUT_MS);
+            connection.setReadTimeout(TIMEOUT_MS);
+            connection.setInstanceFollowRedirects(true);
+            connection.connect();
 
-            return connection.getHeaderField(headerName) != null;
+            // Collect all headers into map (lowercase keys for safe lookup)
+            connection.getHeaderFields().forEach((key, values) -> {
+                if (key != null && values != null && !values.isEmpty()) {
+                    headers.put(key.toLowerCase(), values.get(0));
+                }
+            });
 
         } catch (Exception e) {
-            return false;
+            // Return empty map — all checks will evaluate to false
+        } finally {
+            if (connection != null) connection.disconnect();
         }
+
+        return headers;
+    }
+
+    public boolean hasHeader(Map<String, String> headers, String headerName) {
+        return headers.containsKey(headerName.toLowerCase());
     }
 }

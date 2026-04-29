@@ -25,4 +25,7 @@ public class WebsiteScan {
     private Boolean cspEnabled;
     private Boolean hstsEnabled;
     private String exposedEndpoints;
+
+    @Column(length = 1000)
+    private String sslDetails;
 }

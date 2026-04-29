@@ -6,44 +6,41 @@ import com.securityscanner.repository.WebsiteScanRepository;
 import com.securityscanner.service.ScanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/scan")
 @RequiredArgsConstructor
 public class ScanController {
 
-    private final ScanService _scanService;
+    private final ScanService             scanService;
+    private final WebsiteScanRepository   websiteScanRepository; // stats only — acceptable here
 
-    private final WebsiteScanRepository _websiteScanRepository;
     @PostMapping
-    public WebsiteScan createScan( @Valid @RequestBody ScanRequest request){
-        System.out.println("DOMAIN = " + request.getDomain());
-        return _scanService.createScan(request);
+    public ResponseEntity<WebsiteScan> createScan(@Valid @RequestBody ScanRequest request) {
+        log.info("[ScanController] POST /api/scan domain={}", request.getDomain());
+        WebsiteScan result = scanService.createScan(request);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/history")
-    public List<WebsiteScan> getHistory(){
-        return _scanService.getRecentScan();
+    public ResponseEntity<List<WebsiteScan>> getHistory() {
+        return ResponseEntity.ok(scanService.getRecentScan());
     }
 
     @GetMapping("/stats")
-    public Map<String, Object> getStats() {
+    public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> stats = new HashMap<>();
-
-        stats.put("totalScans",
-                _websiteScanRepository.getTotalScans());
-
-        stats.put("averageScore",
-                _websiteScanRepository.getAverageScore());
-
-        stats.put("criticalSites",
-                _websiteScanRepository.getCriticalSites());
-
-        return stats;
+        stats.put("totalScans",   websiteScanRepository.getTotalScans());
+        stats.put("averageScore", websiteScanRepository.getAverageScore());
+        stats.put("criticalSites", websiteScanRepository.getCriticalSites());
+        return ResponseEntity.ok(stats);
     }
 }
