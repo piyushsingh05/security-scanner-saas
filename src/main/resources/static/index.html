@@ -632,6 +632,10 @@
                     <div class="check-label">SSL Details</div>
                     <div class="check-detail" id="sslDetails">—</div>
                 </div>
+                <div class="check-full">
+                    <div class="check-label">Open Ports</div>
+                    <div class="check-detail" id="openPorts">—</div>
+                </div>
 
                 <a id="downloadLink" class="download-btn">
                     📄 Download PDF Report
@@ -777,6 +781,9 @@
             // SSL Details — THIS WAS MISSING
             const sslEl = document.getElementById("sslDetails");
             sslEl.innerText = data.sslDetails || "Not available";
+
+            const openPortsEl = document.getElementById("openPorts");
+            openPortsEl.innerText = data.openPorts || "No risky open ports found ✓";
 
             // download
             document.getElementById("downloadLink").href = "/api/report/" + data.id;

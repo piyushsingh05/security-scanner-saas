@@ -25,6 +25,7 @@ public class ScanService {
     private final ScoreCalculator          scoreCalculator;
     private final SensitiveEndpointService sensitiveEndpointService;
     private final SSLCheckService          sslCheckService;
+    private final OpenPortScanService      openPortScanService;
 
     public WebsiteScan createScan(ScanRequest request) {
         String domain = request.getDomain().trim();
@@ -45,8 +46,11 @@ public class ScanService {
         CompletableFuture<List<String>> endpointsFuture =
                 CompletableFuture.supplyAsync(() -> sensitiveEndpointService.findExposedEndpoints(domain));
 
+        CompletableFuture<List<String>> openPortsFuture =
+                CompletableFuture.supplyAsync(() -> openPortScanService.scanOpenPorts(domain));
+
         // Wait for all to complete (max 25 seconds total)
-        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture)
+        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture)
                 .orTimeout(25, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
                     log.warn("[ScanService] Some checks timed out for {}: {}", domain, ex.getMessage());
@@ -59,6 +63,14 @@ public class ScanService {
         Map<String, String> headers = getFutureSafe(headersFuture, Map.of());
         String sslDetails = getFutureSafe(sslFuture, "SSL check timed out");
         List<String> exposedList = getFutureSafe(endpointsFuture, List.of());
+
+        List<String> openPortsList =
+                getFutureSafe(openPortsFuture, List.of());
+
+        String openPorts =
+                openPortsList.isEmpty()
+                        ? null
+                        : String.join(", ", openPortsList);
 
         boolean xFrame = headerCheckService.hasHeader(headers, "X-Frame-Options");
         boolean csp    = headerCheckService.hasHeader(headers, "Content-Security-Policy");
@@ -81,6 +93,7 @@ public class ScanService {
                 .status("COMPLETED")
                 .sslDetails(sslDetails)
                 .exposedEndpoints(endpoints)
+                .openPorts(openPorts)
                 .createdAt(LocalDateTime.now())
                 .build();
 

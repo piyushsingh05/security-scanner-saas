@@ -28,4 +28,7 @@ public class WebsiteScan {
 
     @Column(length = 1000)
     private String sslDetails;
+
+    @Column(length = 1000)
+    private String openPorts;
 }
