@@ -26,6 +26,7 @@ public class ScanService {
     private final SensitiveEndpointService sensitiveEndpointService;
     private final SSLCheckService          sslCheckService;
     private final OpenPortScanService      openPortScanService;
+    private final SecretLeakScannerService secretLeakScannerService;
 
     public WebsiteScan createScan(ScanRequest request) {
         String domain = request.getDomain().trim();
@@ -49,14 +50,18 @@ public class ScanService {
         CompletableFuture<List<String>> openPortsFuture =
                 CompletableFuture.supplyAsync(() -> openPortScanService.scanOpenPorts(domain));
 
+        CompletableFuture<List<SecretLeakScannerService.LeakFinding>> leaksFuture =
+                CompletableFuture.supplyAsync(() -> secretLeakScannerService.scanForLeaks(domain));
+
         // Wait for all to complete (max 25 seconds total)
-        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture)
+        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture , leaksFuture)
                 .orTimeout(25, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
                     log.warn("[ScanService] Some checks timed out for {}: {}", domain, ex.getMessage());
                     return null;
                 })
                 .join();
+
 
         // Collect results — safe defaults if a future failed/timed out
         boolean httpsEnabled = getFutureSafe(httpsFuture, false);
@@ -71,6 +76,16 @@ public class ScanService {
                 openPortsList.isEmpty()
                         ? null
                         : String.join(", ", openPortsList);
+
+        List<SecretLeakScannerService.LeakFinding> leakFindings =
+                getFutureSafe(leaksFuture, List.of());
+
+        String leakedSecrets = leakFindings.isEmpty()
+                ? null
+                : leakFindings.stream()
+                .map(Object::toString)
+                .reduce((a, b) -> a + ", " + b)
+                .orElse(null);
 
         boolean xFrame = headerCheckService.hasHeader(headers, "X-Frame-Options");
         boolean csp    = headerCheckService.hasHeader(headers, "Content-Security-Policy");
@@ -94,6 +109,7 @@ public class ScanService {
                 .sslDetails(sslDetails)
                 .exposedEndpoints(endpoints)
                 .openPorts(openPorts)
+                .leakedSecrets(leakedSecrets)
                 .createdAt(LocalDateTime.now())
                 .build();
 

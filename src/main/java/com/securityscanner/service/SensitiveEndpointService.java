@@ -74,7 +74,13 @@ public class SensitiveEndpointService {
             // 200 = endpoint exists
             // 301/302 = redirects (e.g. /robots.txt redirecting to https still means it exists)
             // 403 = forbidden but exists (e.g. /admin blocked but real)
-            return (code == 200 || code == 302 || code == 403) ? path : null;
+            if (path.equals("/robots.txt") || path.equals("/sitemap.xml")) {
+                return (code == 200 || code == 301 || code == 302)
+                        ? path : null;
+            }
+
+            return (code == 200 || code == 401 || code == 403)
+                    ? path : null;
 
         } catch (Exception e) {
             return null;

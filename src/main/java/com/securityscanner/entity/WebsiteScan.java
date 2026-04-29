@@ -33,4 +33,7 @@ public class WebsiteScan {
 
     @Column(length = 1000)
     private String openPorts;
+
+    @Column(length = 3000)
+    private String leakedSecrets;
 }
