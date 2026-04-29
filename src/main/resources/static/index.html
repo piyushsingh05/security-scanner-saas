@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Security Scanner Dashboard</title>
     <link rel="icon" href="/favicon.ico">
+
     <style>
         * {
             margin: 0;
@@ -48,6 +49,7 @@
             padding: 12px;
             border-radius: 10px;
             transition: 0.2s;
+            cursor: pointer;
         }
 
         .menu a:hover {
@@ -68,10 +70,16 @@
             font-size: 32px;
         }
 
-        .scan-box {
+        .scan-box,
+        .card,
+        .result,
+        .history {
             background: #1e293b;
-            padding: 25px;
             border-radius: 18px;
+        }
+
+        .scan-box {
+            padding: 25px;
             margin-bottom: 30px;
         }
 
@@ -107,9 +115,7 @@
         }
 
         .card {
-            background: #1e293b;
             padding: 25px;
-            border-radius: 18px;
         }
 
         .card h3 {
@@ -118,15 +124,13 @@
             margin-bottom: 10px;
         }
 
-        .card .value {
+        .value {
             font-size: 32px;
             font-weight: bold;
         }
 
         .result {
-            background: #1e293b;
             padding: 30px;
-            border-radius: 18px;
             display: none;
             margin-bottom: 30px;
         }
@@ -152,9 +156,7 @@
         }
 
         .history {
-            background: #1e293b;
             padding: 25px;
-            border-radius: 18px;
         }
 
         .history h2 {
@@ -173,74 +175,99 @@
 
 <div class="layout">
 
+    <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">🔐 SecuriScan</div>
 
         <div class="menu">
-            <a href="#">Dashboard</a>
-            <a href="#">New Scan</a>
-            <a href="#">Reports</a>
-            <a href="#">History</a>
-            <a href="#">Settings</a>
+            <a onclick="showSection('dashboard')">Dashboard</a>
+            <a onclick="showSection('scan')">New Scan</a>
+            <a onclick="showSection('reports')">Reports</a>
+            <a onclick="showSection('history')">History</a>
+            <a onclick="showSection('settings')">Settings</a>
         </div>
     </div>
 
+    <!-- Main Content -->
     <div class="main">
 
-        <div class="top-bar">
-            <h1>Security Dashboard</h1>
-        </div>
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
 
-        <div class="scan-box">
-            <input
-                    type="text"
-                    id="domain"
-                    placeholder="Enter domain (example: google.com)"
-            >
-
-            <button onclick="scanWebsite()">
-                🚀 Scan Website
-            </button>
-        </div>
-
-        <div class="stats">
-            <div class="card">
-                <h3>Total Scans</h3>
-                <div class="value" id="totalScans">0</div>
+            <div class="top-bar">
+                <h1>Security Dashboard</h1>
             </div>
 
-            <div class="card">
-                <h3>Average Score</h3>
-                <div class="value" id="averageScore">0</div>
+            <div class="scan-box">
+                <input
+                        type="text"
+                        id="domain"
+                        placeholder="Enter domain (example: google.com)"
+                >
+
+                <button onclick="scanWebsite()">
+                    🚀 Scan Website
+                </button>
             </div>
 
-            <div class="card">
-                <h3>Critical Sites</h3>
-                <div class="value" id="criticalSites">0</div>
+            <div class="stats">
+                <div class="card">
+                    <h3>Total Scans</h3>
+                    <div class="value" id="totalScans">0</div>
+                </div>
+
+                <div class="card">
+                    <h3>Average Score</h3>
+                    <div class="value" id="averageScore">0</div>
+                </div>
+
+                <div class="card">
+                    <h3>Critical Sites</h3>
+                    <div class="value" id="criticalSites">0</div>
+                </div>
+            </div>
+
+            <div class="result" id="resultBox">
+                <h2>Security Audit Report</h2>
+
+                <p><strong>Security Score:</strong> <span id="score"></span>/100</p>
+                <p><strong>Security Grade:</strong> <span id="grade"></span></p>
+                <p><strong>HTTPS:</strong> <span id="https"></span></p>
+                <p><strong>X-Frame-Options:</strong> <span id="xframe"></span></p>
+                <p><strong>CSP:</strong> <span id="csp"></span></p>
+                <p><strong>HSTS:</strong> <span id="hsts"></span></p>
+                <p><strong>Sensitive Endpoints:</strong> <span id="endpoints"></span></p>
+
+                <a id="downloadLink" class="download-btn">
+                    📄 Download PDF Report
+                </a>
             </div>
         </div>
 
-        <div class="result" id="resultBox">
-            <h2>Security Audit Report</h2>
-
-            <p><strong>Security Score:</strong> <span id="score"></span>/100</p>
-            <p><strong>Security Grade:</strong> <span id="grade"></span></p>
-            <p><strong>HTTPS:</strong> <span id="https"></span></p>
-            <p><strong>X-Frame-Options:</strong> <span id="xframe"></span></p>
-            <p><strong>CSP:</strong> <span id="csp"></span></p>
-            <p><strong>HSTS:</strong> <span id="hsts"></span></p>
-            <p><strong>Sensitive Endpoints:</strong> <span id="endpoints"></span></p>
-
-            <a id="downloadLink" class="download-btn">
-                📄 Download PDF Report
-            </a>
+        <!-- Reports Section -->
+        <div id="reportsSection" style="display:none;">
+            <div class="history">
+                <h2>Reports</h2>
+                <p>Generated PDF reports will appear here.</p>
+            </div>
         </div>
 
-        <div class="history">
-            <h2>Recent Scans</h2>
+        <!-- History Section -->
+        <div id="historySection" style="display:none;">
+            <div class="history">
+                <h2>Recent Scans</h2>
 
-            <div id="historyList">
-                Loading recent scans...
+                <div id="historyList">
+                    Loading recent scans...
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settingsSection" style="display:none;">
+            <div class="history">
+                <h2>Settings</h2>
+                <p>System settings and preferences.</p>
             </div>
         </div>
 
@@ -248,6 +275,30 @@
 </div>
 
 <script>
+
+    function showSection(section) {
+        document.getElementById("dashboardSection").style.display = "none";
+        document.getElementById("reportsSection").style.display = "none";
+        document.getElementById("historySection").style.display = "none";
+        document.getElementById("settingsSection").style.display = "none";
+
+        if (section === "dashboard" || section === "scan") {
+            document.getElementById("dashboardSection").style.display = "block";
+        }
+
+        if (section === "reports") {
+            document.getElementById("reportsSection").style.display = "block";
+        }
+
+        if (section === "history") {
+            document.getElementById("historySection").style.display = "block";
+        }
+
+        if (section === "settings") {
+            document.getElementById("settingsSection").style.display = "block";
+        }
+    }
+
     async function scanWebsite() {
         let domain = document.getElementById("domain").value.trim();
 
@@ -370,6 +421,7 @@
 
     loadHistory();
     loadStats();
+
 </script>
 
 </body>
