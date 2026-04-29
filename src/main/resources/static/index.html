@@ -748,7 +748,7 @@
             });
 
             const data = await response.json();
-
+            console.log("FULL API RESPONSE:", data);
             // score circle
             const score = data.score;
             const circle = document.getElementById("scoreCircle");

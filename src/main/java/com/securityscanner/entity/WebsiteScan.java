@@ -24,6 +24,8 @@ public class WebsiteScan {
     private Boolean xFrameOptionsEnabled;
     private Boolean cspEnabled;
     private Boolean hstsEnabled;
+
+    @Column(length = 2000)
     private String exposedEndpoints;
 
     @Column(length = 1000)
