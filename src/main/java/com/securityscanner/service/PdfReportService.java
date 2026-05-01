@@ -8,7 +8,6 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.springframework.stereotype.Service;
-
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -124,8 +123,8 @@ public class PdfReportService {
         fillRect(cs, 0, y + h - 2, PW, 2, ACCENT_BLUE); // top line
 
         // Logo box + letter
-        fillRect(cs, MARGIN, y + 12, 36, 36, ACCENT_BLUE);
-        drawText(cs, BOLD, 20, TEXT_WHITE, MARGIN + 9, y + 20, "S");
+        // NEW - Shield-style logo
+        drawShieldLogo(cs, MARGIN, y + 10);
 
         // Title
         drawText(cs, BOLD,     18, TEXT_WHITE, MARGIN + 46, y + 33, "SecuriScan");
@@ -519,5 +518,60 @@ public class PdfReportService {
 
     private static Color hex(String hex) {
         return Color.decode(hex);
+    }
+
+    /**
+     * Draws a shield-shaped logo with "SS" initials inside.
+     * cx/cy = bottom-left corner of the bounding box.
+     */
+    private void drawShieldLogo(PDPageContentStream cs, float x, float y) throws IOException {
+        // Outer shield background (dark blue)
+        cs.setNonStrokingColor(ACCENT_BLUE);
+        cs.setLineWidth(0);
+
+        // Shield shape: rectangle + pointed bottom triangle
+        float sw = 38f, sh = 40f;
+        float mx = x + sw / 2f; // midpoint x
+
+        // Top rectangle part of shield
+        fillRect(cs, x, y + 14, sw, sh - 14, ACCENT_BLUE);
+
+        // Triangle bottom point of shield
+        cs.setNonStrokingColor(ACCENT_BLUE);
+        cs.moveTo(x,        y + 14);
+        cs.lineTo(x + sw,   y + 14);
+        cs.lineTo(mx,       y);
+        cs.fill();
+
+        // Rounded top corners (simulate with small rects)
+        fillRect(cs, x + 4,      y + 14, sw - 8, 4, ACCENT_BLUE);
+
+        // Inner lighter shield outline
+        cs.setStrokingColor(hex("#5B9BFF"));
+        cs.setLineWidth(1.2f);
+        cs.moveTo(x + 4,    y + sh);
+        cs.lineTo(x + sw - 4, y + sh);
+        cs.lineTo(x + sw - 4, y + 16);
+        cs.lineTo(mx,         y + 2);
+        cs.lineTo(x + 4,      y + 16);
+        cs.lineTo(x + 4,      y + sh);
+        cs.stroke();
+
+        // Lock icon body (small rectangle)
+        fillRect(cs, mx - 7, y + 16, 14, 11, TEXT_WHITE);
+
+        // Lock shackle (arch) - approximate with lines
+        cs.setStrokingColor(TEXT_WHITE);
+        cs.setLineWidth(2.5f);
+        cs.moveTo(mx - 4, y + 27);
+        cs.lineTo(mx - 4, y + 31);
+        cs.curveTo(mx - 4, y + 36, mx + 4, y + 36, mx + 4, y + 31);
+        cs.lineTo(mx + 4, y + 27);
+        cs.stroke();
+
+        // Lock keyhole (small circle + line)
+        cs.setNonStrokingColor(ACCENT_BLUE);
+        fillCircle(cs, mx, y + 21, 2.5f, ACCENT_BLUE);
+        fillRect(cs, mx - 1, y + 16, 2, 5, ACCENT_BLUE);
     }
 }
