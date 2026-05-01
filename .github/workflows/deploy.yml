@@ -16,6 +16,10 @@ jobs:
           host: 13.232.44.150
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          command_timeout: 30m
+          debug: true
           script: |
             cd ~/security-scanner-saas
             git pull origin main
