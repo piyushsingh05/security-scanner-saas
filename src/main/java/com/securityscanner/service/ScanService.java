@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,6 +28,7 @@ public class ScanService {
     private final SSLCheckService          sslCheckService;
     private final OpenPortScanService      openPortScanService;
     private final SecretLeakScannerService secretLeakScannerService;
+    private final DirectoryScanService     directoryScanService;
 
     public WebsiteScan createScan(ScanRequest request) {
         String domain = request.getDomain().trim();
@@ -47,14 +49,17 @@ public class ScanService {
         CompletableFuture<List<String>> endpointsFuture =
                 CompletableFuture.supplyAsync(() -> sensitiveEndpointService.findExposedEndpoints(domain));
 
-        CompletableFuture<List<String>> openPortsFuture =
+        CompletableFuture<List<OpenPortScanService.PortResult>> openPortsFuture =
                 CompletableFuture.supplyAsync(() -> openPortScanService.scanOpenPorts(domain));
+
+        CompletableFuture<List<DirectoryScanService.DirectoryResult>> dirsFuture =
+                CompletableFuture.supplyAsync(() -> directoryScanService.scanDirectories(domain));
 
         CompletableFuture<List<SecretLeakScannerService.LeakFinding>> leaksFuture =
                 CompletableFuture.supplyAsync(() -> secretLeakScannerService.scanForLeaks(domain));
 
         // Wait for all to complete (max 25 seconds total)
-        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture , leaksFuture)
+        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture , leaksFuture , dirsFuture)
                 .orTimeout(25, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
                     log.warn("[ScanService] Some checks timed out for {}: {}", domain, ex.getMessage());
@@ -69,16 +74,22 @@ public class ScanService {
         String sslDetails = getFutureSafe(sslFuture, "SSL check timed out");
         List<String> exposedList = getFutureSafe(endpointsFuture, List.of());
 
-        List<String> openPortsList =
+        // ✅ Fix
+        List<OpenPortScanService.PortResult> openPortsList =
                 getFutureSafe(openPortsFuture, List.of());
 
-        String openPorts =
-                openPortsList.isEmpty()
-                        ? null
-                        : String.join(", ", openPortsList);
+        String openPorts = openPortsList.isEmpty()
+                ? null
+                : openPortsList.stream()
+                .map(OpenPortScanService.PortResult::toString)
+                .collect(Collectors.joining(", "));
 
         List<SecretLeakScannerService.LeakFinding> leakFindings =
                 getFutureSafe(leaksFuture, List.of());
+
+        List<DirectoryScanService.DirectoryResult> dirsList = getFutureSafe(dirsFuture, List.of());
+        String directoryFindings = dirsList.isEmpty() ? null
+                : dirsList.stream().map(Object::toString).collect(Collectors.joining(", "));
 
         String leakedSecrets = leakFindings.isEmpty()
                 ? null
@@ -109,6 +120,7 @@ public class ScanService {
                 .sslDetails(sslDetails)
                 .exposedEndpoints(endpoints)
                 .openPorts(openPorts)
+                .directoryFindings(directoryFindings)
                 .leakedSecrets(leakedSecrets)
                 .createdAt(LocalDateTime.now())
                 .build();

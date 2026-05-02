@@ -36,4 +36,7 @@ public class WebsiteScan {
 
     @Column(length = 3000)
     private String leakedSecrets;
+
+    @Column(columnDefinition = "TEXT")
+    private String directoryFindings;
 }

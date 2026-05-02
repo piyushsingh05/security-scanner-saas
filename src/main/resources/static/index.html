@@ -3,852 +3,1920 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SecuriScan – Security Scanner</title>
-    <link rel="icon" href="/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>SecuriScan — Professional Security Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg:        #080c14;
-            --surface:   #0d1320;
-            --surface2:  #111b2e;
-            --border:    rgba(99,179,255,0.10);
-            --border2:   rgba(99,179,255,0.18);
-            --accent:    #3b82f6;
-            --accent2:   #06b6d4;
-            --green:     #22c55e;
-            --red:       #ef4444;
-            --amber:     #f59e0b;
-            --text:      #e2e8f0;
-            --muted:     #64748b;
-            --mono:      'JetBrains Mono', monospace;
-            --sans:      'Syne', sans-serif;
+          --bg:       #050810;
+          --s1:       #080d1a;
+          --s2:       #0c1222;
+          --s3:       #111828;
+          --border:   rgba(56,189,248,0.08);
+          --border2:  rgba(56,189,248,0.18);
+          --border3:  rgba(56,189,248,0.32);
+          --blue:     #38bdf8;
+          --blue2:    #0ea5e9;
+          --cyan:     #06b6d4;
+          --violet:   #818cf8;
+          --green:    #34d399;
+          --red:      #f87171;
+          --amber:    #fbbf24;
+          --text:     #e2e8f0;
+          --muted:    #475569;
+          --muted2:   #64748b;
+          --mono:     'Space Mono', monospace;
+          --sans:     'DM Sans', sans-serif;
+          --display:  'Bebas Neue', sans-serif;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+
+        html { scroll-behavior: smooth; }
 
         body {
-            font-family: var(--sans);
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
+          font-family: var(--sans);
+          background: var(--bg);
+          color: var(--text);
+          min-height: 100vh;
+          overflow-x: hidden;
         }
 
-        /* grid background */
+        /* ── ANIMATED BACKGROUND ── */
         body::before {
-            content: '';
-            position: fixed;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            pointer-events: none;
-            z-index: 0;
+          content:'';
+          position:fixed;
+          inset:0;
+          background:
+            radial-gradient(ellipse 800px 600px at 20% 10%, rgba(56,189,248,0.04) 0%, transparent 70%),
+            radial-gradient(ellipse 600px 400px at 80% 80%, rgba(129,140,248,0.04) 0%, transparent 70%),
+            linear-gradient(rgba(56,189,248,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px);
+          background-size: auto, auto, 48px 48px, 48px 48px;
+          pointer-events:none;
+          z-index:0;
         }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
+        /* Scan line animation */
+        body::after {
+          content:'';
+          position:fixed;
+          top:-2px; left:0; right:0;
+          height:2px;
+          background: linear-gradient(90deg, transparent, var(--blue), transparent);
+          animation: scanline 6s linear infinite;
+          z-index:100;
+          pointer-events:none;
+        }
+        @keyframes scanline { 0%{top:-2px} 100%{top:100vh} }
+
+        /* ── LAYOUT ── */
+        .shell {
+          display:flex;
+          min-height:100vh;
+          position:relative;
+          z-index:1;
         }
 
         /* ── SIDEBAR ── */
         .sidebar {
-            width: 240px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 28px 0;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-            position: sticky;
-            top: 0;
-            height: 100vh;
+          width:260px;
+          background: var(--s1);
+          border-right: 1px solid var(--border);
+          display:flex;
+          flex-direction:column;
+          position:sticky;
+          top:0;
+          height:100vh;
+          flex-shrink:0;
+          overflow:hidden;
         }
 
-        .logo {
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            padding: 0 24px 28px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .sidebar::before {
+          content:'';
+          position:absolute;
+          top:0; left:0; right:0;
+          height:2px;
+          background: linear-gradient(90deg, var(--blue), var(--violet));
         }
 
-        .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
+        .logo-wrap {
+          padding:28px 24px 22px;
+          border-bottom:1px solid var(--border);
         }
 
-        .menu {
-            padding: 20px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
+        .logo-eyebrow {
+          font-family: var(--mono);
+          font-size:9px;
+          color: var(--muted2);
+          letter-spacing:3px;
+          text-transform:uppercase;
+          margin-bottom:8px;
         }
 
-        .menu a {
-            text-decoration: none;
-            color: var(--muted);
-            padding: 11px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.18s;
-            letter-spacing: 0.2px;
+        .logo-main {
+          font-family: var(--display);
+          font-size:30px;
+          letter-spacing:2px;
+          background: linear-gradient(135deg, var(--blue), var(--cyan));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          line-height:1;
         }
 
-        .menu a:hover, .menu a.active {
-            background: rgba(59,130,246,0.12);
-            color: #93c5fd;
+        .logo-sub {
+          font-size:11px;
+          color:var(--muted2);
+          margin-top:5px;
+          font-family:var(--mono);
         }
 
-        .menu a .icon {
-            width: 18px;
-            text-align: center;
-            font-size: 15px;
+        .status-bar {
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:10px 24px;
+          background:rgba(52,211,153,0.04);
+          border-bottom:1px solid var(--border);
+        }
+        .status-dot {
+          width:6px; height:6px;
+          border-radius:50%;
+          background:var(--green);
+          animation: pulse 2s ease infinite;
+        }
+        @keyframes pulse {
+          0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(52,211,153,0.4)}
+          50%{opacity:.8;box-shadow:0 0 0 5px rgba(52,211,153,0)}
+        }
+        .status-text { font-family:var(--mono); font-size:10px; color:var(--green); letter-spacing:1px; }
+
+        .nav {
+          padding:18px 14px;
+          flex:1;
+          display:flex;
+          flex-direction:column;
+          gap:2px;
+        }
+
+        .nav-section-label {
+          font-family:var(--mono);
+          font-size:9px;
+          letter-spacing:2px;
+          color:var(--muted);
+          text-transform:uppercase;
+          padding:10px 10px 6px;
+        }
+
+        .nav a {
+          display:flex;
+          align-items:center;
+          gap:12px;
+          padding:11px 12px;
+          border-radius:8px;
+          color:var(--muted2);
+          font-size:13.5px;
+          font-weight:500;
+          text-decoration:none;
+          cursor:pointer;
+          transition:all .18s;
+          border:1px solid transparent;
+          position:relative;
+          overflow:hidden;
+        }
+
+        .nav a::before {
+          content:'';
+          position:absolute;
+          left:0; top:0; bottom:0;
+          width:2px;
+          background:var(--blue);
+          transform:scaleY(0);
+          transition:transform .18s;
+          border-radius:0 2px 2px 0;
+        }
+
+        .nav a:hover {
+          background:rgba(56,189,248,0.06);
+          color:var(--blue);
+          border-color:var(--border);
+        }
+
+        .nav a.active {
+          background:rgba(56,189,248,0.1);
+          color:var(--blue);
+          border-color:var(--border2);
+        }
+
+        .nav a.active::before { transform:scaleY(1); }
+
+        .nav-icon {
+          width:18px;
+          text-align:center;
+          font-size:14px;
+          opacity:.8;
+        }
+
+        .nav-badge {
+          margin-left:auto;
+          background:rgba(56,189,248,0.15);
+          color:var(--blue);
+          border-radius:20px;
+          font-family:var(--mono);
+          font-size:9px;
+          padding:2px 7px;
         }
 
         .sidebar-footer {
-            padding: 20px 24px;
-            border-top: 1px solid var(--border);
-            font-size: 12px;
-            color: var(--muted);
-            font-family: var(--mono);
+          padding:18px 24px;
+          border-top:1px solid var(--border);
         }
+
+        .sidebar-footer-row {
+          display:flex;
+          align-items:center;
+          gap:10px;
+        }
+
+        .avatar {
+          width:30px; height:30px;
+          border-radius:8px;
+          background:linear-gradient(135deg,var(--blue),var(--violet));
+          display:flex; align-items:center; justify-content:center;
+          font-size:12px; font-weight:700; color:white; flex-shrink:0;
+        }
+
+        .footer-meta { font-family:var(--mono); }
+        .footer-name { font-size:11px; color:var(--text); font-weight:700; }
+        .footer-plan { font-size:9px; color:var(--muted2); letter-spacing:1px; text-transform:uppercase; }
 
         /* ── MAIN ── */
         .main {
-            flex: 1;
-            padding: 40px 48px;
-            max-width: 1100px;
+          flex:1;
+          overflow-y:auto;
+          padding:0;
         }
 
-        .page-header {
-            margin-bottom: 36px;
+        /* ── TOP BAR ── */
+        .topbar {
+          height:56px;
+          background:var(--s1);
+          border-bottom:1px solid var(--border);
+          display:flex;
+          align-items:center;
+          padding:0 40px;
+          gap:16px;
+          position:sticky;
+          top:0;
+          z-index:50;
         }
 
-        .page-header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            color: #f1f5f9;
+        .topbar-breadcrumb {
+          font-family:var(--mono);
+          font-size:11px;
+          color:var(--muted);
+          display:flex;
+          align-items:center;
+          gap:6px;
+          flex:1;
         }
 
-        .page-header p {
-            color: var(--muted);
-            font-size: 14px;
-            margin-top: 4px;
-            font-family: var(--mono);
+        .topbar-breadcrumb span { color:var(--blue); }
+
+        .topbar-actions {
+          display:flex;
+          align-items:center;
+          gap:10px;
         }
 
-        /* ── SCAN BOX ── */
-        .scan-box {
-            background: var(--surface);
-            border: 1px solid var(--border2);
-            border-radius: 16px;
-            padding: 28px;
-            margin-bottom: 28px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
+        .topbar-btn {
+          background:transparent;
+          border:1px solid var(--border2);
+          color:var(--muted2);
+          border-radius:7px;
+          padding:6px 12px;
+          font-family:var(--mono);
+          font-size:10px;
+          cursor:pointer;
+          transition:all .18s;
+          display:flex;
+          align-items:center;
+          gap:6px;
         }
 
-        .scan-prefix {
-            font-family: var(--mono);
-            font-size: 13px;
-            color: var(--accent2);
-            white-space: nowrap;
-            background: rgba(6,182,212,0.08);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(6,182,212,0.15);
+        .topbar-btn:hover { border-color:var(--blue); color:var(--blue); }
+
+        /* ── PAGE CONTENT ── */
+        .page { display:none; padding:36px 40px; }
+        .page.active { display:block; }
+
+        /* ── SECTION HEADER ── */
+        .section-header {
+          margin-bottom:32px;
         }
 
-        .scan-input {
-            flex: 1;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 18px;
-            font-size: 15px;
-            font-family: var(--mono);
-            color: var(--text);
-            outline: none;
-            transition: border-color 0.2s;
+        .section-eyebrow {
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--blue);
+          letter-spacing:3px;
+          text-transform:uppercase;
+          margin-bottom:8px;
+          display:flex;
+          align-items:center;
+          gap:8px;
         }
 
-        .scan-input:focus {
-            border-color: var(--accent);
+        .section-eyebrow::before {
+          content:'';
+          width:20px; height:1px;
+          background:var(--blue);
         }
 
-        .scan-input::placeholder { color: var(--muted); }
-
-        .scan-btn {
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 14px 24px;
-            font-size: 14px;
-            font-weight: 700;
-            font-family: var(--sans);
-            cursor: pointer;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: opacity 0.2s, transform 0.1s;
-            letter-spacing: 0.3px;
+        .section-title {
+          font-family:var(--display);
+          font-size:38px;
+          letter-spacing:2px;
+          color:var(--text);
+          line-height:1;
+          margin-bottom:6px;
         }
 
-        .scan-btn:hover { opacity: 0.88; transform: translateY(-1px); }
-        .scan-btn:active { transform: translateY(0); }
-
-        .scan-btn.loading {
-            pointer-events: none;
-            opacity: 0.7;
+        .section-sub {
+          font-family:var(--mono);
+          font-size:11px;
+          color:var(--muted2);
         }
 
-        /* ── STATS ── */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-bottom: 28px;
+        /* ── STATS ROW ── */
+        .stats-row {
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          gap:14px;
+          margin-bottom:28px;
         }
 
-        .stat-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: border-color 0.2s;
+        .stat-tile {
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:20px;
+          position:relative;
+          overflow:hidden;
+          transition:border-color .2s, transform .2s;
+          cursor:default;
         }
 
-        .stat-card:hover { border-color: var(--border2); }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
+        .stat-tile:hover {
+          border-color:var(--border2);
+          transform:translateY(-2px);
         }
+
+        .stat-tile::after {
+          content:'';
+          position:absolute;
+          bottom:0; left:0; right:0;
+          height:1px;
+          background:linear-gradient(90deg, var(--blue), transparent);
+          opacity:0;
+          transition:opacity .2s;
+        }
+
+        .stat-tile:hover::after { opacity:1; }
 
         .stat-label {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 12px;
+          font-family:var(--mono);
+          font-size:9px;
+          letter-spacing:2px;
+          color:var(--muted);
+          text-transform:uppercase;
+          margin-bottom:10px;
         }
 
         .stat-value {
-            font-size: 36px;
-            font-weight: 800;
-            color: #f1f5f9;
-            letter-spacing: -1px;
-            font-family: var(--mono);
+          font-family:var(--display);
+          font-size:40px;
+          letter-spacing:1px;
+          color:var(--text);
+          line-height:1;
         }
 
-        /* ── RESULT BOX ── */
-        .result {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 32px;
-            display: none;
-            margin-bottom: 28px;
-            animation: fadeIn 0.3s ease;
+        .stat-delta {
+          font-family:var(--mono);
+          font-size:9px;
+          color:var(--muted2);
+          margin-top:4px;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-        .result-header {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 28px;
-            padding-bottom: 24px;
-            border-bottom: 1px solid var(--border);
+        /* ── SCAN COMMAND BOX ── */
+        .cmd-box {
+          background:var(--s2);
+          border:1px solid var(--border2);
+          border-radius:14px;
+          padding:6px 6px 6px 20px;
+          display:flex;
+          align-items:center;
+          gap:10px;
+          margin-bottom:28px;
+          transition:border-color .2s;
         }
 
-        .result-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f1f5f9;
+        .cmd-box:focus-within { border-color:var(--border3); }
+
+        .cmd-prompt {
+          font-family:var(--mono);
+          font-size:13px;
+          color:var(--blue);
+          white-space:nowrap;
+          display:flex;
+          align-items:center;
+          gap:6px;
         }
 
-        .result-domain {
-            font-family: var(--mono);
-            font-size: 12px;
-            color: var(--muted);
-            margin-top: 4px;
+        .cmd-prompt::before { content:'$'; color:var(--muted2); }
+
+        .cmd-input {
+          flex:1;
+          background:transparent;
+          border:none;
+          outline:none;
+          font-family:var(--mono);
+          font-size:14px;
+          color:var(--text);
+          caret-color:var(--blue);
         }
 
-        .score-badge {
-            text-align: center;
+        .cmd-input::placeholder { color:var(--muted); }
+
+        .cmd-options {
+          display:flex;
+          gap:6px;
         }
 
-        .score-circle {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            font-weight: 800;
-            font-family: var(--mono);
-            border: 3px solid;
-            margin-bottom: 6px;
+        .cmd-flag {
+          background:rgba(56,189,248,0.08);
+          border:1px solid var(--border);
+          border-radius:6px;
+          padding:5px 10px;
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--muted2);
+          display:flex;
+          align-items:center;
+          gap:5px;
+          cursor:pointer;
+          transition:all .18s;
+          user-select:none;
         }
 
-        .score-a { border-color: var(--green); color: var(--green); }
-        .score-b { border-color: #84cc16; color: #84cc16; }
-        .score-c { border-color: var(--amber); color: var(--amber); }
-        .score-d { border-color: var(--red); color: var(--red); }
-
-        .grade-label {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--muted);
+        .cmd-flag.active, .cmd-flag:hover {
+          background:rgba(56,189,248,0.14);
+          border-color:var(--border2);
+          color:var(--blue);
         }
 
-        /* checks grid */
-        .checks-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+        .cmd-flag input[type=checkbox] { display:none; }
+
+        .run-btn {
+          background:linear-gradient(135deg, var(--blue2), var(--cyan));
+          color:white;
+          border:none;
+          border-radius:10px;
+          padding:13px 22px;
+          font-family:var(--display);
+          font-size:16px;
+          letter-spacing:1px;
+          cursor:pointer;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          transition:all .2s;
+          white-space:nowrap;
+          flex-shrink:0;
         }
 
-        .check-item {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .run-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+        .run-btn:active { transform:translateY(0); }
+        .run-btn:disabled { opacity:.5; pointer-events:none; }
+
+        /* ── PROGRESS ── */
+        .scan-progress {
+          display:none;
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:14px;
+          padding:24px;
+          margin-bottom:24px;
         }
 
-        .check-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--muted);
-            letter-spacing: 0.3px;
+        .progress-header {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          margin-bottom:18px;
         }
 
-        .check-val {
-            font-size: 13px;
-            font-weight: 700;
-            font-family: var(--mono);
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        .progress-title {
+          font-family:var(--mono);
+          font-size:12px;
+          color:var(--blue);
         }
 
-        .check-val.pass { color: var(--green); }
-        .check-val.fail { color: var(--red); }
-
-        .dot { width: 7px; height: 7px; border-radius: 50%; }
-        .dot.pass { background: var(--green); }
-        .dot.fail { background: var(--red); }
-
-        /* full-width check items */
-        .check-full {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin-bottom: 12px;
+        .progress-pct {
+          font-family:var(--display);
+          font-size:22px;
+          color:var(--text);
         }
 
-        .check-full .check-label { margin-bottom: 6px; }
-
-        .check-full .check-detail {
-            font-family: var(--mono);
-            font-size: 12px;
-            color: var(--text);
-            word-break: break-all;
-            line-height: 1.6;
+        .progress-track {
+          height:3px;
+          background:var(--s3);
+          border-radius:2px;
+          margin-bottom:20px;
+          overflow:hidden;
         }
 
-        .tag {
-            display: inline-block;
-            background: rgba(245,158,11,0.12);
-            color: var(--amber);
-            border: 1px solid rgba(245,158,11,0.2);
-            border-radius: 6px;
-            padding: 2px 8px;
-            font-size: 11px;
-            font-family: var(--mono);
-            font-weight: 600;
-            margin-right: 4px;
+        .progress-fill {
+          height:100%;
+          background:linear-gradient(90deg,var(--blue),var(--cyan));
+          border-radius:2px;
+          transition:width .4s ease;
+          width:0%;
         }
 
-        /* download btn */
-        .download-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 4px;
-            background: rgba(245,158,11,0.1);
-            color: var(--amber);
-            border: 1px solid rgba(245,158,11,0.25);
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 13px;
-            text-decoration: none;
-            transition: all 0.2s;
-            cursor: pointer;
+        .progress-steps {
+          display:grid;
+          grid-template-columns:repeat(6,1fr);
+          gap:8px;
         }
 
-        .download-btn:hover {
-            background: rgba(245,158,11,0.18);
-            border-color: rgba(245,158,11,0.4);
+        .p-step {
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap:5px;
         }
 
-        /* ── HISTORY ── */
-        .section-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 28px;
+        .p-step-icon {
+          width:30px; height:30px;
+          border-radius:8px;
+          border:1px solid var(--border);
+          display:flex; align-items:center; justify-content:center;
+          font-size:12px;
+          background:var(--s3);
+          transition:all .3s;
+          position:relative;
         }
 
-        .section-card h2 {
-            font-size: 16px;
-            font-weight: 700;
-            color: #f1f5f9;
-            margin-bottom: 6px;
+        .p-step-icon.done {
+          border-color:var(--green);
+          background:rgba(52,211,153,0.1);
         }
 
-        .section-subtitle {
-            font-size: 12px;
-            font-family: var(--mono);
-            color: var(--muted);
-            margin-bottom: 22px;
+        .p-step-icon.running {
+          border-color:var(--blue);
+          background:rgba(56,189,248,0.1);
+          animation:stepPulse 1s ease infinite;
         }
 
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
+        @keyframes stepPulse {
+          0%,100%{box-shadow:0 0 0 0 rgba(56,189,248,0.3)}
+          50%{box-shadow:0 0 0 6px rgba(56,189,248,0)}
         }
 
-        .history-table th {
-            text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--muted);
-            padding: 0 0 14px;
-            border-bottom: 1px solid var(--border);
+        .p-step-label {
+          font-family:var(--mono);
+          font-size:8px;
+          color:var(--muted);
+          text-align:center;
+          letter-spacing:.5px;
+          text-transform:uppercase;
         }
 
-        .history-table td {
-            padding: 14px 0;
-            font-size: 13px;
-            border-bottom: 1px solid var(--border);
-            font-family: var(--mono);
-            vertical-align: middle;
+        /* ── RESULT PANEL ── */
+        .result-panel {
+          display:none;
+          animation:slideUp .4s ease;
+          margin-bottom:28px;
         }
 
-        .history-table tr:last-child td { border-bottom: none; }
+        @keyframes slideUp {
+          from{opacity:0;transform:translateY(16px)}
+          to{opacity:1;transform:translateY(0)}
+        }
+
+        .result-hero {
+          background:var(--s2);
+          border:1px solid var(--border2);
+          border-radius:14px;
+          padding:28px;
+          display:flex;
+          align-items:center;
+          gap:28px;
+          margin-bottom:16px;
+          position:relative;
+          overflow:hidden;
+        }
+
+        .result-hero::before {
+          content:'';
+          position:absolute;
+          top:0; left:0; right:0;
+          height:2px;
+          background:linear-gradient(90deg,var(--blue),var(--cyan),var(--violet));
+        }
+
+        .score-ring-wrap {
+          flex-shrink:0;
+          position:relative;
+        }
+
+        .score-svg { transform:rotate(-90deg); }
+
+        .score-center {
+          position:absolute;
+          inset:0;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+        }
+
+        .score-num {
+          font-family:var(--display);
+          font-size:32px;
+          letter-spacing:1px;
+          line-height:1;
+        }
+
+        .score-denom {
+          font-family:var(--mono);
+          font-size:9px;
+          color:var(--muted2);
+        }
+
+        .result-meta { flex:1; }
+
+        .result-domain-label {
+          font-family:var(--mono);
+          font-size:9px;
+          color:var(--muted2);
+          letter-spacing:2px;
+          text-transform:uppercase;
+          margin-bottom:4px;
+        }
+
+        .result-domain-val {
+          font-family:var(--display);
+          font-size:26px;
+          letter-spacing:1px;
+          color:var(--text);
+          margin-bottom:12px;
+        }
+
+        .result-badges {
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+        }
+
+        .rbadge {
+          padding:4px 12px;
+          border-radius:20px;
+          font-family:var(--mono);
+          font-size:10px;
+          font-weight:700;
+          letter-spacing:.5px;
+          text-transform:uppercase;
+        }
+
+        .rbadge-green { background:rgba(52,211,153,0.12); color:var(--green); border:1px solid rgba(52,211,153,0.2); }
+        .rbadge-amber { background:rgba(251,191,36,0.12); color:var(--amber); border:1px solid rgba(251,191,36,0.2); }
+        .rbadge-red   { background:rgba(248,113,113,0.12); color:var(--red);   border:1px solid rgba(248,113,113,0.2); }
+        .rbadge-blue  { background:rgba(56,189,248,0.12);  color:var(--blue);  border:1px solid rgba(56,189,248,0.2); }
+
+        .result-actions { display:flex; flex-direction:column; gap:8px; flex-shrink:0; }
+
+        .action-btn {
+          display:flex;
+          align-items:center;
+          gap:8px;
+          padding:10px 16px;
+          border-radius:8px;
+          font-family:var(--mono);
+          font-size:11px;
+          cursor:pointer;
+          text-decoration:none;
+          transition:all .18s;
+          border:1px solid var(--border2);
+          background:transparent;
+          color:var(--muted2);
+          white-space:nowrap;
+        }
+
+        .action-btn:hover { border-color:var(--blue); color:var(--blue); }
+        .action-btn.primary { background:rgba(56,189,248,0.1); color:var(--blue); }
+
+        /* ── RESULT GRID ── */
+        .result-grid {
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:14px;
+        }
+
+        .res-card {
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:20px;
+          transition:border-color .2s;
+        }
+
+        .res-card:hover { border-color:var(--border2); }
+
+        .res-card.full { grid-column:1/-1; }
+
+        .res-card-header {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          margin-bottom:16px;
+          padding-bottom:12px;
+          border-bottom:1px solid var(--border);
+        }
+
+        .res-card-title {
+          font-family:var(--mono);
+          font-size:10px;
+          letter-spacing:2px;
+          text-transform:uppercase;
+          color:var(--blue);
+          display:flex;
+          align-items:center;
+          gap:8px;
+        }
+
+        .res-count {
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--muted2);
+        }
+
+        /* checks list */
+        .checks-list { display:flex; flex-direction:column; gap:8px; }
+
+        .check-row {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:10px 12px;
+          background:var(--s3);
+          border-radius:8px;
+          border:1px solid var(--border);
+        }
+
+        .check-name {
+          font-size:13px;
+          font-weight:500;
+          color:var(--text);
+        }
+
+        .check-status {
+          font-family:var(--mono);
+          font-size:10px;
+          font-weight:700;
+          display:flex;
+          align-items:center;
+          gap:5px;
+        }
+
+        .check-status.pass { color:var(--green); }
+        .check-status.fail { color:var(--red); }
+        .check-dot { width:6px; height:6px; border-radius:50%; }
+        .check-dot.pass { background:var(--green); }
+        .check-dot.fail { background:var(--red); }
+
+        /* tags */
+        .tags-wrap { display:flex; flex-wrap:wrap; gap:6px; }
+
+        .tag-pill {
+          padding:5px 12px;
+          border-radius:6px;
+          font-family:var(--mono);
+          font-size:11px;
+          background:rgba(251,191,36,0.08);
+          color:var(--amber);
+          border:1px solid rgba(251,191,36,0.18);
+        }
+
+        .tag-pill.blue {
+          background:rgba(56,189,248,0.08);
+          color:var(--blue);
+          border-color:rgba(56,189,248,0.18);
+        }
+
+        .tag-pill.red {
+          background:rgba(248,113,113,0.08);
+          color:var(--red);
+          border-color:rgba(248,113,113,0.18);
+        }
+
+        .tag-pill.green {
+          background:rgba(52,211,153,0.08);
+          color:var(--green);
+          border-color:rgba(52,211,153,0.18);
+        }
+
+        .empty-msg {
+          font-family:var(--mono);
+          font-size:11px;
+          color:var(--green);
+          display:flex;
+          align-items:center;
+          gap:6px;
+        }
+
+        .ssl-detail {
+          font-family:var(--mono);
+          font-size:12px;
+          color:var(--text);
+          line-height:1.8;
+        }
+
+        /* ── HISTORY TABLE ── */
+        .history-card {
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:14px;
+          overflow:hidden;
+        }
+
+        .history-card-head {
+          padding:20px 24px 16px;
+          border-bottom:1px solid var(--border);
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+        }
+
+        .history-card-head h2 {
+          font-family:var(--display);
+          font-size:20px;
+          letter-spacing:1px;
+        }
+
+        .h-sub {
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--muted2);
+          margin-top:2px;
+        }
+
+        .htable {
+          width:100%;
+          border-collapse:collapse;
+        }
+
+        .htable th {
+          padding:12px 24px;
+          text-align:left;
+          font-family:var(--mono);
+          font-size:9px;
+          letter-spacing:2px;
+          text-transform:uppercase;
+          color:var(--muted);
+          border-bottom:1px solid var(--border);
+          background:rgba(56,189,248,0.02);
+        }
+
+        .htable td {
+          padding:14px 24px;
+          font-family:var(--mono);
+          font-size:12px;
+          color:var(--text);
+          border-bottom:1px solid var(--border);
+          transition:background .15s;
+        }
+
+        .htable tr:last-child td { border-bottom:none; }
+        .htable tr:hover td { background:rgba(56,189,248,0.03); }
 
         .grade-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
+          display:inline-flex;
+          align-items:center;
+          padding:3px 10px;
+          border-radius:5px;
+          font-weight:700;
+          font-size:11px;
+          letter-spacing:.5px;
         }
 
-        .grade-a { background: rgba(34,197,94,0.12); color: var(--green); }
-        .grade-b { background: rgba(132,204,22,0.12); color: #84cc16; }
-        .grade-c { background: rgba(245,158,11,0.12); color: var(--amber); }
-        .grade-d { background: rgba(239,68,68,0.12); color: var(--red); }
+        .g-a { background:rgba(52,211,153,0.12); color:var(--green); }
+        .g-b { background:rgba(56,189,248,0.12); color:var(--blue); }
+        .g-c { background:rgba(251,191,36,0.12); color:var(--amber); }
+        .g-d { background:rgba(248,113,113,0.12); color:var(--red); }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 0;
-            color: var(--muted);
-            font-size: 13px;
-            font-family: var(--mono);
+        .status-chip {
+          display:inline-flex;
+          align-items:center;
+          gap:5px;
+          font-size:10px;
+          padding:3px 9px;
+          border-radius:20px;
+          background:rgba(52,211,153,0.08);
+          color:var(--green);
+          border:1px solid rgba(52,211,153,0.15);
         }
 
-        /* spinner */
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-row {
+          text-align:center;
+          padding:48px 0;
+          color:var(--muted2);
+          font-family:var(--mono);
+          font-size:12px;
+        }
+
+        /* ── SPINNER ── */
+        @keyframes spin { to{transform:rotate(360deg)} }
         .spinner {
-            width: 14px; height: 14px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+          width:14px; height:14px;
+          border:2px solid rgba(255,255,255,.3);
+          border-top-color:white;
+          border-radius:50%;
+          animation:spin .7s linear infinite;
+          display:inline-block;
         }
 
-        /* section visibility */
-        .section { display: none; }
-        .section.active { display: block; }
+        /* ── TOAST ── */
+        .toast-wrap {
+          position:fixed;
+          bottom:28px; right:28px;
+          display:flex;
+          flex-direction:column;
+          gap:10px;
+          z-index:999;
+        }
+
+        .toast {
+          background:var(--s2);
+          border:1px solid var(--border2);
+          border-radius:10px;
+          padding:12px 18px;
+          font-family:var(--mono);
+          font-size:12px;
+          color:var(--text);
+          display:flex;
+          align-items:center;
+          gap:10px;
+          animation:toastIn .3s ease;
+          min-width:260px;
+        }
+
+        @keyframes toastIn {
+          from{opacity:0;transform:translateX(20px)}
+          to{opacity:1;transform:translateX(0)}
+        }
+
+        .toast.success { border-color:rgba(52,211,153,.3); }
+        .toast.error   { border-color:rgba(248,113,.3); }
+        .toast.info    { border-color:rgba(56,189,248,.3); }
+
+        /* ── REPORTS PAGE ── */
+        .reports-grid {
+          display:grid;
+          grid-template-columns:repeat(3,1fr);
+          gap:16px;
+        }
+
+        .report-card {
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:20px;
+          transition:all .2s;
+          cursor:pointer;
+        }
+
+        .report-card:hover {
+          border-color:var(--border2);
+          transform:translateY(-2px);
+        }
+
+        .report-card-icon {
+          width:40px; height:40px;
+          background:rgba(56,189,248,0.1);
+          border:1px solid var(--border2);
+          border-radius:10px;
+          display:flex; align-items:center; justify-content:center;
+          font-size:18px;
+          margin-bottom:14px;
+        }
+
+        .report-card-domain {
+          font-family:var(--mono);
+          font-size:13px;
+          color:var(--text);
+          margin-bottom:4px;
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
+        }
+
+        .report-card-date {
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--muted2);
+          margin-bottom:12px;
+        }
+
+        .report-dl-btn {
+          display:flex;
+          align-items:center;
+          gap:6px;
+          width:100%;
+          background:rgba(56,189,248,0.06);
+          border:1px solid var(--border);
+          border-radius:7px;
+          padding:8px 12px;
+          font-family:var(--mono);
+          font-size:10px;
+          color:var(--blue);
+          cursor:pointer;
+          text-decoration:none;
+          transition:all .18s;
+        }
+
+        .report-dl-btn:hover { background:rgba(56,189,248,0.14); border-color:var(--border2); }
+
+        /* Settings */
+        .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+        .setting-card {
+          background:var(--s2);
+          border:1px solid var(--border);
+          border-radius:12px;
+          padding:22px;
+        }
+
+        .setting-card-title {
+          font-family:var(--mono);
+          font-size:11px;
+          letter-spacing:1.5px;
+          text-transform:uppercase;
+          color:var(--blue);
+          margin-bottom:16px;
+        }
+
+        .setting-row {
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:10px 0;
+          border-bottom:1px solid var(--border);
+        }
+
+        .setting-row:last-child { border-bottom:none; }
+
+        .setting-label { font-size:13px; color:var(--text); }
+        .setting-hint { font-family:var(--mono); font-size:10px; color:var(--muted2); margin-top:2px; }
+
+        .toggle {
+          width:36px; height:20px;
+          background:var(--s3);
+          border-radius:10px;
+          border:1px solid var(--border2);
+          position:relative;
+          cursor:pointer;
+          transition:background .2s;
+        }
+
+        .toggle.on { background:var(--blue); }
+
+        .toggle::after {
+          content:'';
+          position:absolute;
+          width:14px; height:14px;
+          background:white;
+          border-radius:50%;
+          top:2px; left:2px;
+          transition:left .2s;
+        }
+
+        .toggle.on::after { left:18px; }
+
+        /* ── RESPONSIVE HINT ── */
+        @media(max-width:900px){
+          .sidebar{width:200px}
+          .stats-row{grid-template-columns:repeat(2,1fr)}
+          .result-grid{grid-template-columns:1fr}
+          .res-card.full{grid-column:auto}
+        }
     </style>
 </head>
 <body>
 
-<div class="layout">
+<div class="shell">
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">🔐</div>
-            SecuriScan
+    <!-- ── SIDEBAR ── -->
+    <nav class="sidebar">
+        <div class="logo-wrap">
+            <div class="logo-eyebrow">Security Intelligence</div>
+            <div class="logo-main">SECURI<span style="color:var(--cyan)">SCAN</span></div>
+            <div class="logo-sub">v2.0 · Professional Edition</div>
         </div>
 
-        <div class="menu">
-            <a class="active" onclick="showSection('dashboard', this)">
-                <span class="icon">⬛</span> Dashboard
+        <div class="status-bar">
+            <div class="status-dot"></div>
+            <div class="status-text">ALL SYSTEMS OPERATIONAL</div>
+        </div>
+
+        <div class="nav">
+            <div class="nav-section-label">Core</div>
+            <a class="active" onclick="showPage('dashboard',this)">
+                <span class="nav-icon">◈</span>
+                Dashboard
             </a>
-            <a onclick="showSection('scan', this)">
-                <span class="icon">⚡</span> New Scan
+            <a onclick="showPage('scanner',this)">
+                <span class="nav-icon">⚡</span>
+                Scanner
+                <span class="nav-badge">LIVE</span>
             </a>
-            <a onclick="showSection('history', this)">
-                <span class="icon">📋</span> History
+
+            <div class="nav-section-label">Intelligence</div>
+            <a onclick="showPage('history',this)">
+                <span class="nav-icon">◷</span>
+                Scan History
             </a>
-            <a onclick="showSection('reports', this)">
-                <span class="icon">📄</span> Reports
+            <a onclick="showPage('reports',this)">
+                <span class="nav-icon">◫</span>
+                Reports
             </a>
-            <a onclick="showSection('settings', this)">
-                <span class="icon">⚙</span> Settings
+
+            <div class="nav-section-label">System</div>
+            <a onclick="showPage('settings',this)">
+                <span class="nav-icon">◎</span>
+                Settings
             </a>
         </div>
 
         <div class="sidebar-footer">
-            v1.0.0 · SecuriScan
+            <div class="sidebar-footer-row">
+                <div class="avatar">S</div>
+                <div class="footer-meta">
+                    <div class="footer-name">Security Analyst</div>
+                    <div class="footer-plan">PRO PLAN</div>
+                </div>
+            </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Main -->
+    <!-- ── MAIN ── -->
     <div class="main">
 
-        <!-- Dashboard -->
-        <div id="dashboardSection" class="section active">
-            <div class="page-header">
-                <h1>Security Dashboard</h1>
-                <p>$ scan --target [domain] --full-audit</p>
+        <!-- Top bar -->
+        <div class="topbar">
+            <div class="topbar-breadcrumb">
+                securiscan / <span id="breadcrumbPage">dashboard</span>
             </div>
-
-            <div class="scan-box">
-                <span class="scan-prefix">https://</span>
-                <input
-                        class="scan-input"
-                        type="text"
-                        id="domain"
-                        placeholder="google.com"
-                >
-                <button class="scan-btn" id="scanBtn" onclick="scanWebsite()">
-                    <span id="btnIcon">⚡</span>
-                    <span id="btnText">Run Scan</span>
-                </button>
-            </div>
-
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-label">Total Scans</div>
-                    <div class="stat-value" id="totalScans">—</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Average Score</div>
-                    <div class="stat-value" id="averageScore">—</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Critical Sites</div>
-                    <div class="stat-value" id="criticalSites">—</div>
-                </div>
-            </div>
-
-            <!-- Result -->
-            <div class="result" id="resultBox">
-                <div class="result-header">
-                    <div>
-                        <div class="result-title">Security Audit Report</div>
-                        <div class="result-domain" id="resultDomain"></div>
-                    </div>
-                    <div class="score-badge">
-                        <div class="score-circle" id="scoreCircle"></div>
-                        <div class="grade-label" id="gradeLabel"></div>
-                    </div>
-                </div>
-
-                <div class="checks-grid">
-                    <div class="check-item">
-                        <span class="check-label">HTTPS</span>
-                        <span class="check-val" id="https"></span>
-                    </div>
-                    <div class="check-item">
-                        <span class="check-label">X-Frame-Options</span>
-                        <span class="check-val" id="xframe"></span>
-                    </div>
-                    <div class="check-item">
-                        <span class="check-label">CSP</span>
-                        <span class="check-val" id="csp"></span>
-                    </div>
-                    <div class="check-item">
-                        <span class="check-label">HSTS</span>
-                        <span class="check-val" id="hsts"></span>
-                    </div>
-                </div>
-
-                <div class="check-full">
-                    <div class="check-label">Sensitive Endpoints</div>
-                    <div class="check-detail" id="endpoints">—</div>
-                </div>
-
-                <div class="check-full">
-                    <div class="check-label">SSL Details</div>
-                    <div class="check-detail" id="sslDetails">—</div>
-                </div>
-                <div class="check-full">
-                    <div class="check-label">Open Ports</div>
-                    <div class="check-detail" id="openPorts">—</div>
-                </div>
-
-                <a id="downloadLink" class="download-btn">
-                    📄 Download PDF Report
-                </a>
+            <div class="topbar-actions">
+                <button class="topbar-btn" onclick="loadStats(); loadHistory()">↻ Refresh</button>
+                <button class="topbar-btn" id="newScanTopBtn" onclick="showPage('scanner', null); document.querySelector('.nav a:nth-child(4)').classList.add('active')">+ New Scan</button>
             </div>
         </div>
 
-        <!-- History -->
-        <div id="historySection" class="section">
-            <div class="page-header">
-                <h1>Scan History</h1>
-                <p>$ history --all</p>
+        <!-- ══ DASHBOARD PAGE ══ -->
+        <div id="page-dashboard" class="page active">
+            <div class="section-header">
+                <div class="section-eyebrow">Overview</div>
+                <div class="section-title">DASHBOARD</div>
+                <div class="section-sub">$ securiscan --status --metrics</div>
             </div>
-            <div class="section-card">
-                <h2>Recent Scans</h2>
-                <div class="section-subtitle">All previously scanned domains</div>
-                <table class="history-table">
+
+            <div class="stats-row">
+                <div class="stat-tile">
+                    <div class="stat-label">Total Scans</div>
+                    <div class="stat-value" id="totalScans">—</div>
+                    <div class="stat-delta">all time</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-value" id="averageScore">—</div>
+                    <div class="stat-delta">security rating</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Critical Sites</div>
+                    <div class="stat-value" id="criticalSites">—</div>
+                    <div class="stat-delta">score &lt; 50</div>
+                </div>
+                <div class="stat-tile">
+                    <div class="stat-label">Last Scan</div>
+                    <div class="stat-value" id="lastScanTime" style="font-size:22px;padding-top:8px">—</div>
+                    <div class="stat-delta">most recent</div>
+                </div>
+            </div>
+
+            <!-- Recent scans mini table -->
+            <div class="history-card">
+                <div class="history-card-head">
+                    <div>
+                        <h2>Recent Activity</h2>
+                        <div class="h-sub">$ history --limit 5 --order desc</div>
+                    </div>
+                    <button class="topbar-btn" onclick="showPage('scanner', document.querySelectorAll('.nav a')[1])">+ New Scan</button>
+                </div>
+                <table class="htable">
                     <thead>
                     <tr>
                         <th>Domain</th>
                         <th>Score</th>
                         <th>Grade</th>
+                        <th>HTTPS</th>
+                        <th>Open Ports</th>
                         <th>Status</th>
                     </tr>
                     </thead>
-                    <tbody id="historyList">
-                    <tr><td colspan="4"><div class="empty-state">Loading...</div></td></tr>
+                    <tbody id="dashboardHistory">
+                    <tr><td colspan="6" class="empty-row">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Reports -->
-        <div id="reportsSection" class="section">
-            <div class="page-header">
-                <h1>Reports</h1>
-                <p>$ reports --list</p>
+        <!-- ══ SCANNER PAGE ══ -->
+        <div id="page-scanner" class="page">
+            <div class="section-header">
+                <div class="section-eyebrow">Active Scan</div>
+                <div class="section-title">SCANNER</div>
+                <div class="section-sub">$ securiscan --target [domain] --full --parallel</div>
             </div>
-            <div class="section-card">
-                <h2>Generated Reports</h2>
-                <div class="section-subtitle">PDF reports are generated after each scan</div>
-                <div class="empty-state">Run a scan to generate your first report.</div>
+
+            <!-- Command box -->
+            <div class="cmd-box">
+                <div class="cmd-prompt">scan</div>
+                <input class="cmd-input" id="domainInput" type="text"
+                       placeholder="example.com"
+                       onkeydown="if(event.key==='Enter') runScan()">
+                <div class="cmd-options">
+                    <label class="cmd-flag active" id="flagFull" onclick="toggleFlag(this)">
+                        <input type="checkbox" checked> --full
+                    </label>
+                    <label class="cmd-flag active" id="flagPorts" onclick="toggleFlag(this)">
+                        <input type="checkbox" checked> --ports
+                    </label>
+                    <label class="cmd-flag active" id="flagDirs" onclick="toggleFlag(this)">
+                        <input type="checkbox" checked> --dirs
+                    </label>
+                    <label class="cmd-flag active" id="flagSecrets" onclick="toggleFlag(this)">
+                        <input type="checkbox" checked> --secrets
+                    </label>
+                </div>
+                <button class="run-btn" id="runBtn" onclick="runScan()">
+                    <span id="runBtnIcon">⚡</span>
+                    <span id="runBtnText">EXECUTE</span>
+                </button>
+            </div>
+
+            <!-- Progress -->
+            <div class="scan-progress" id="scanProgress">
+                <div class="progress-header">
+                    <div class="progress-title">▶ SCANNING IN PROGRESS</div>
+                    <div class="progress-pct" id="progressPct">0%</div>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-dns">🌐</div>
+                        <div class="p-step-label">DNS</div>
+                    </div>
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-https">🔒</div>
+                        <div class="p-step-label">HTTPS</div>
+                    </div>
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-headers">📋</div>
+                        <div class="p-step-label">Headers</div>
+                    </div>
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-ssl">🛡</div>
+                        <div class="p-step-label">SSL</div>
+                    </div>
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-ports">🔌</div>
+                        <div class="p-step-label">Ports</div>
+                    </div>
+                    <div class="p-step">
+                        <div class="p-step-icon" id="step-dirs">📁</div>
+                        <div class="p-step-label">Directories</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Panel -->
+            <div class="result-panel" id="resultPanel">
+
+                <!-- Hero row -->
+                <div class="result-hero">
+                    <div class="score-ring-wrap">
+                        <svg class="score-svg" width="100" height="100" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="42" fill="none" stroke="#111828" stroke-width="8"/>
+                            <circle cx="50" cy="50" r="42" fill="none" stroke-width="8"
+                                    stroke-linecap="round"
+                                    id="scoreRingCircle"
+                                    stroke-dasharray="263.9"
+                                    stroke-dashoffset="263.9"
+                                    style="transition:stroke-dashoffset 1.2s ease"/>
+                        </svg>
+                        <div class="score-center">
+                            <div class="score-num" id="scoreNum">—</div>
+                            <div class="score-denom">/100</div>
+                        </div>
+                    </div>
+
+                    <div class="result-meta">
+                        <div class="result-domain-label">Target Domain</div>
+                        <div class="result-domain-val" id="resultDomain">—</div>
+                        <div class="result-badges" id="resultBadges"></div>
+                    </div>
+
+                    <div class="result-actions">
+                        <a class="action-btn primary" id="downloadPdfBtn" href="#" target="_blank">
+                            ⬇ Download PDF
+                        </a>
+                        <button class="action-btn" onclick="showPage('reports', document.querySelectorAll('.nav a')[4])">
+                            ◫ View Reports
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Result cards grid -->
+                <div class="result-grid">
+
+                    <!-- Security headers -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">🛡 Security Headers</div>
+                        </div>
+                        <div class="checks-list" id="checksList"></div>
+                    </div>
+
+                    <!-- SSL -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">🔒 SSL Certificate</div>
+                        </div>
+                        <div class="ssl-detail" id="sslDetail">—</div>
+                    </div>
+
+                    <!-- Open Ports -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">🔌 Open Ports</div>
+                            <div class="res-count" id="portsCount"></div>
+                        </div>
+                        <div class="tags-wrap" id="portsTags"></div>
+                    </div>
+
+                    <!-- Directory Scan -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">📁 Directory Scan</div>
+                            <div class="res-count" id="dirsCount"></div>
+                        </div>
+                        <div class="tags-wrap" id="dirsTags"></div>
+                    </div>
+
+                    <!-- Exposed Endpoints -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">⚠ Sensitive Endpoints</div>
+                            <div class="res-count" id="endpointsCount"></div>
+                        </div>
+                        <div class="tags-wrap" id="endpointsTags"></div>
+                    </div>
+
+                    <!-- Leaked Secrets -->
+                    <div class="res-card">
+                        <div class="res-card-header">
+                            <div class="res-card-title">🔑 Leaked Secrets</div>
+                        </div>
+                        <div id="secretsDetail"></div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
-        <!-- Settings -->
-        <div id="settingsSection" class="section">
-            <div class="page-header">
-                <h1>Settings</h1>
-                <p>$ config --show</p>
+        <!-- ══ HISTORY PAGE ══ -->
+        <div id="page-history" class="page">
+            <div class="section-header">
+                <div class="section-eyebrow">Audit Trail</div>
+                <div class="section-title">SCAN HISTORY</div>
+                <div class="section-sub">$ history --all --order desc</div>
             </div>
-            <div class="section-card">
-                <h2>System Configuration</h2>
-                <div class="section-subtitle">Preferences and scan settings — coming soon</div>
-                <div class="empty-state">Settings panel coming soon.</div>
+
+            <div class="history-card">
+                <div class="history-card-head">
+                    <div>
+                        <h2>All Scans</h2>
+                        <div class="h-sub">Complete audit trail of scanned domains</div>
+                    </div>
+                </div>
+                <table class="htable">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Domain</th>
+                        <th>Score</th>
+                        <th>Grade</th>
+                        <th>HTTPS</th>
+                        <th>CSP</th>
+                        <th>HSTS</th>
+                        <th>Open Ports</th>
+                        <th>Dirs Found</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                    <tr><td colspan="11" class="empty-row">Loading history...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-    </div>
-</div>
+        <!-- ══ REPORTS PAGE ══ -->
+        <div id="page-reports" class="page">
+            <div class="section-header">
+                <div class="section-eyebrow">Generated Reports</div>
+                <div class="section-title">REPORTS</div>
+                <div class="section-sub">$ reports --list --format pdf</div>
+            </div>
+            <div class="reports-grid" id="reportsGrid">
+                <div style="grid-column:1/-1;text-align:center;padding:48px;font-family:var(--mono);font-size:12px;color:var(--muted2)">
+                    Loading reports...
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SETTINGS PAGE ══ -->
+        <div id="page-settings" class="page">
+            <div class="section-header">
+                <div class="section-eyebrow">Configuration</div>
+                <div class="section-title">SETTINGS</div>
+                <div class="section-sub">$ config --show --all</div>
+            </div>
+            <div class="settings-grid">
+                <div class="setting-card">
+                    <div class="setting-card-title">Scan Options</div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Port Scanning</div>
+                            <div class="setting-hint">Scan common TCP ports</div>
+                        </div>
+                        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Directory Enumeration</div>
+                            <div class="setting-hint">Check common paths and endpoints</div>
+                        </div>
+                        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Secret Leak Detection</div>
+                            <div class="setting-hint">Scan for exposed credentials</div>
+                        </div>
+                        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Auto-generate PDF</div>
+                            <div class="setting-hint">PDF report on scan completion</div>
+                        </div>
+                        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                    </div>
+                </div>
+
+                <div class="setting-card">
+                    <div class="setting-card-title">Timeouts &amp; Limits</div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Connection Timeout</div>
+                            <div class="setting-hint">Per-check TCP timeout</div>
+                        </div>
+                        <div style="font-family:var(--mono);font-size:13px;color:var(--blue)">2000ms</div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Total Scan Timeout</div>
+                            <div class="setting-hint">Max wait for all checks</div>
+                        </div>
+                        <div style="font-family:var(--mono);font-size:13px;color:var(--blue)">25s</div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="setting-label">Parallel Workers</div>
+                            <div class="setting-hint">Concurrent port/dir threads</div>
+                        </div>
+                        <div style="font-family:var(--mono);font-size:13px;color:var(--blue)">Auto</div>
+                    </div>
+                </div>
+
+                <div class="setting-card" style="grid-column:1/-1">
+                    <div class="setting-card-title">About</div>
+                    <div class="setting-row">
+                        <div class="setting-label">Version</div>
+                        <div style="font-family:var(--mono);font-size:12px;color:var(--muted2)">SecuriScan v2.0.0-professional</div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-label">Engine</div>
+                        <div style="font-family:var(--mono);font-size:12px;color:var(--muted2)">Spring Boot 3 · Java 21 · Parallel Stream Engine</div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-label">Checks</div>
+                        <div style="font-family:var(--mono);font-size:12px;color:var(--muted2)">HTTPS · CSP · HSTS · X-Frame · SSL · Ports · Dirs · Secrets</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /main -->
+</div><!-- /shell -->
+
+<div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-    function showSection(section, el) {
-        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.menu a').forEach(a => a.classList.remove('active'));
-
-        const map = {
-            dashboard: 'dashboardSection',
-            scan:      'dashboardSection',
-            history:   'historySection',
-            reports:   'reportsSection',
-            settings:  'settingsSection'
-        };
-
-        document.getElementById(map[section]).classList.add('active');
-        if (el) el.classList.add('active');
-
-        if (section === 'history') loadHistory();
+    // ── NAV ──
+    function showPage(id, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+      document.getElementById('breadcrumbPage').textContent = id;
+      if (el) el.classList.add('active');
+      if (id === 'history') loadHistory();
+      if (id === 'reports') loadReports();
+      if (id === 'dashboard') { loadStats(); loadDashboardHistory(); }
     }
 
-    function setBoolCheck(id, val) {
-        const el = document.getElementById(id);
-        if (val) {
-            el.className = 'check-val pass';
-            el.innerHTML = '<span class="dot pass"></span> Yes';
-        } else {
-            el.className = 'check-val fail';
-            el.innerHTML = '<span class="dot fail"></span> No';
+    // ── FLAGS ──
+    function toggleFlag(el) {
+      el.classList.toggle('active');
+    }
+
+    // ── TOAST ──
+    function toast(msg, type='info') {
+      const icons = { success:'✓', error:'✗', info:'◈' };
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span style="color:var(--${type==='success'?'green':type==='error'?'red':'blue'})">${icons[type]}</span> ${msg}`;
+      document.getElementById('toastWrap').appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    // ── PROGRESS ANIMATION ──
+    const steps = ['dns','https','headers','ssl','ports','dirs'];
+    let progressTimer = null;
+
+    function startProgress() {
+      document.getElementById('scanProgress').style.display = 'block';
+      let pct = 0;
+      let stepIdx = 0;
+
+      clearInterval(progressTimer);
+
+      // Reset
+      steps.forEach(s => {
+        const el = document.getElementById('step-'+s);
+        el.classList.remove('done','running');
+      });
+
+      progressTimer = setInterval(() => {
+        pct = Math.min(pct + 2, 92);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressPct').textContent = pct + '%';
+
+        const newStepIdx = Math.floor(pct / (100 / steps.length));
+        if (newStepIdx !== stepIdx && newStepIdx <= steps.length) {
+          if (stepIdx < steps.length) {
+            document.getElementById('step-' + steps[stepIdx]).classList.remove('running');
+            document.getElementById('step-' + steps[stepIdx]).classList.add('done');
+            document.getElementById('step-' + steps[stepIdx]).textContent = '✓';
+          }
+          stepIdx = newStepIdx;
+          if (stepIdx < steps.length) {
+            document.getElementById('step-' + steps[stepIdx]).classList.add('running');
+          }
         }
+      }, 280);
     }
 
-    async function scanWebsite() {
-        let domain = document.getElementById("domain").value.trim()
-            .replace(/https?:\/\//g, "")
-            .replace(/\//g, "");
-
-        if (!domain) { alert("Please enter a domain"); return; }
-
-        // loading state
-        const btn = document.getElementById("scanBtn");
-        document.getElementById("btnIcon").innerHTML = '<span class="spinner"></span>';
-        document.getElementById("btnText").innerText = "Scanning...";
-        btn.classList.add("loading");
-
-        try {
-            const response = await fetch("/api/scan", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ domain })
-            });
-
-            const data = await response.json();
-            console.log("FULL API RESPONSE:", data);
-            // score circle
-            const score = data.score;
-            const circle = document.getElementById("scoreCircle");
-            circle.innerText = score;
-            circle.className = 'score-circle';
-            let gradeText = '';
-            if (score >= 90)      { circle.classList.add('score-a'); gradeText = 'Excellent'; }
-            else if (score >= 75) { circle.classList.add('score-b'); gradeText = 'Good'; }
-            else if (score >= 50) { circle.classList.add('score-c'); gradeText = 'Needs Work'; }
-            else                  { circle.classList.add('score-d'); gradeText = 'High Risk'; }
-
-            document.getElementById("gradeLabel").innerText = gradeText;
-            document.getElementById("resultDomain").innerText = '→ ' + domain;
-
-            // booleans
-            setBoolCheck("https", data.httpsEnabled);
-            setBoolCheck("xframe", data.xFrameOptionsEnabled);
-            setBoolCheck("csp", data.cspEnabled);
-            setBoolCheck("hsts", data.hstsEnabled);
-
-            // endpoints
-            const epEl = document.getElementById("endpoints");
-            if (data.exposedEndpoints) {
-                const parts = data.exposedEndpoints.split(",");
-                epEl.innerHTML = parts.map(p => `<span class="tag">${p.trim()}</span>`).join(" ");
-            } else {
-                epEl.innerHTML = '<span style="color: var(--green); font-weight:700">None found ✓</span>';
-            }
-
-            // SSL Details — THIS WAS MISSING
-            const sslEl = document.getElementById("sslDetails");
-            sslEl.innerText = data.sslDetails || "Not available";
-
-            const openPortsEl = document.getElementById("openPorts");
-            openPortsEl.innerText = data.openPorts || "No risky open ports found ✓";
-
-            // download
-            document.getElementById("downloadLink").href = "/api/report/" + data.id;
-            document.getElementById("resultBox").style.display = "block";
-            document.getElementById("resultBox").scrollIntoView({ behavior: "smooth" });
-
-            loadStats();
-
-        } catch (error) {
-            alert("Scan failed. Check the console.");
-            console.error(error);
-        } finally {
-            document.getElementById("btnIcon").innerText = "⚡";
-            document.getElementById("btnText").innerText = "Run Scan";
-            btn.classList.remove("loading");
-        }
+    function finishProgress() {
+      clearInterval(progressTimer);
+      document.getElementById('progressFill').style.width = '100%';
+      document.getElementById('progressPct').textContent = '100%';
+      steps.forEach(s => {
+        const el = document.getElementById('step-'+s);
+        el.classList.remove('running');
+        el.classList.add('done');
+        el.textContent = '✓';
+      });
+      setTimeout(() => {
+        document.getElementById('scanProgress').style.display = 'none';
+      }, 800);
     }
 
-    async function loadHistory() {
-        try {
-            const response = await fetch("/api/scan/history");
-            const data = await response.json();
-            const tbody = document.getElementById("historyList");
-
-            if (!data.length) {
-                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No scans yet. Run your first scan above.</div></td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = data.map(scan => {
-                let grade = 'D', cls = 'grade-d';
-                if (scan.score >= 90)      { grade = 'A'; cls = 'grade-a'; }
-                else if (scan.score >= 75) { grade = 'B'; cls = 'grade-b'; }
-                else if (scan.score >= 50) { grade = 'C'; cls = 'grade-c'; }
-
-                return `
-                    <tr>
-                        <td>${scan.domain}</td>
-                        <td>${scan.score}/100</td>
-                        <td><span class="grade-pill ${cls}">${grade}</span></td>
-                        <td>${scan.status || 'Completed'}</td>
-                    </tr>
-                `;
-            }).join('');
-
-        } catch (e) {
-            console.error("History load failed", e);
-        }
+    // ── SCORE RING ──
+    function setScoreRing(score) {
+      const circumference = 263.9;
+      const offset = circumference - (score / 100) * circumference;
+      const circle = document.getElementById('scoreRingCircle');
+      const color = score >= 75 ? '#34d399' : score >= 50 ? '#fbbf24' : '#f87171';
+      circle.style.stroke = color;
+      setTimeout(() => {
+        circle.style.strokeDashoffset = offset;
+      }, 100);
+      document.getElementById('scoreNum').textContent = score;
+      document.getElementById('scoreNum').style.color = color;
     }
 
+    // ── MAIN SCAN ──
+    async function runScan() {
+      let domain = document.getElementById('domainInput').value.trim()
+        .replace(/https?:\/\//g,'').replace(/\//g,'');
+
+      if (!domain) { toast('Please enter a domain', 'error'); return; }
+
+      const btn = document.getElementById('runBtn');
+      document.getElementById('runBtnIcon').innerHTML = '<span class="spinner"></span>';
+      document.getElementById('runBtnText').textContent = 'SCANNING';
+      btn.disabled = true;
+
+      document.getElementById('resultPanel').style.display = 'none';
+      startProgress();
+      toast(`Scanning ${domain}...`, 'info');
+
+      try {
+        const res = await fetch('http://localhost:9292/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+
+        if (!res.ok) throw new Error('Scan failed: ' + res.status);
+
+        const data = await res.json();
+        finishProgress();
+        renderResult(data, domain);
+        toast('Scan complete!', 'success');
+        loadStats();
+
+      } catch(e) {
+        finishProgress();
+        toast('Scan failed — check console', 'error');
+        console.error(e);
+      } finally {
+        document.getElementById('runBtnIcon').textContent = '⚡';
+        document.getElementById('runBtnText').textContent = 'EXECUTE';
+        btn.disabled = false;
+      }
+    }
+
+    // ── RENDER RESULT ──
+    function renderResult(data, domain) {
+      // Score ring
+      setScoreRing(data.score || 0);
+
+      // Domain
+      document.getElementById('resultDomain').textContent = domain;
+
+      // Badges
+      const badges = document.getElementById('resultBadges');
+      badges.innerHTML = '';
+      const score = data.score || 0;
+      const grade = scoreToGrade(score);
+      const gradeColor = score >= 75 ? 'green' : score >= 50 ? 'amber' : 'red';
+      badges.innerHTML += `<span class="rbadge rbadge-${gradeColor}">Grade ${grade}</span>`;
+      if (data.httpsEnabled) badges.innerHTML += `<span class="rbadge rbadge-green">HTTPS ✓</span>`;
+      else badges.innerHTML += `<span class="rbadge rbadge-red">No HTTPS</span>`;
+      if (data.openPorts) badges.innerHTML += `<span class="rbadge rbadge-amber">Ports Open</span>`;
+      if (data.exposedEndpoints) badges.innerHTML += `<span class="rbadge rbadge-amber">Endpoints Exposed</span>`;
+      if (data.leakedSecrets) badges.innerHTML += `<span class="rbadge rbadge-red">Secrets Leaked!</span>`;
+
+      // PDF link
+      document.getElementById('downloadPdfBtn').href = 'http://localhost:9292/api/report/' + data.id;
+
+      // Security header checks
+      const checks = [
+        { label: 'HTTPS Enabled',      val: data.httpsEnabled },
+        { label: 'X-Frame-Options',    val: data.xFrameOptionsEnabled },
+        { label: 'Content-Security-Policy', val: data.cspEnabled },
+        { label: 'HSTS',               val: data.hstsEnabled },
+      ];
+
+      document.getElementById('checksList').innerHTML = checks.map(c => `
+        <div class="check-row">
+          <span class="check-name">${c.label}</span>
+          <span class="check-status ${c.val ? 'pass' : 'fail'}">
+            <span class="check-dot ${c.val ? 'pass' : 'fail'}"></span>
+            ${c.val ? 'ENABLED' : 'MISSING'}
+          </span>
+        </div>
+      `).join('');
+
+      // SSL
+      document.getElementById('sslDetail').textContent = data.sslDetails || 'No SSL data available';
+
+      // Open ports
+      const portsWrap = document.getElementById('portsTags');
+      const portsCount = document.getElementById('portsCount');
+      if (data.openPorts) {
+        const ports = data.openPorts.split(',').map(p => p.trim()).filter(Boolean);
+        portsCount.textContent = ports.length + ' found';
+        const dangerPorts = ['21','22','23','25','3306','5432','6379','27017'];
+        portsWrap.innerHTML = ports.map(p => {
+          const num = p.split(' ')[0];
+          const isDanger = dangerPorts.some(d => num.startsWith(d));
+          return `<span class="tag-pill ${isDanger ? 'red' : 'blue'}">${p}</span>`;
+        }).join('');
+      } else {
+        portsCount.textContent = '0 found';
+        portsWrap.innerHTML = '<span class="empty-msg">✓ No risky ports detected</span>';
+      }
+
+      // Directory scan
+      const dirsWrap = document.getElementById('dirsTags');
+      const dirsCount = document.getElementById('dirsCount');
+      if (data.directoryFindings) {
+        const dirs = data.directoryFindings.split(',').map(d => d.trim()).filter(Boolean);
+        dirsCount.textContent = dirs.length + ' found';
+        dirsWrap.innerHTML = dirs.map(d => {
+          const is200 = d.includes('200');
+          const is403 = d.includes('403');
+          return `<span class="tag-pill ${is200 ? 'red' : is403 ? 'amber' : 'blue'}">${d}</span>`;
+        }).join('');
+      } else {
+        dirsCount.textContent = '0 found';
+        dirsWrap.innerHTML = '<span class="empty-msg">✓ No exposed directories</span>';
+      }
+
+      // Endpoints
+      const epWrap = document.getElementById('endpointsTags');
+      const epCount = document.getElementById('endpointsCount');
+      if (data.exposedEndpoints) {
+        const eps = data.exposedEndpoints.split(',').map(e => e.trim()).filter(Boolean);
+        epCount.textContent = eps.length + ' found';
+        epWrap.innerHTML = eps.map(e => `<span class="tag-pill">${e}</span>`).join('');
+      } else {
+        epCount.textContent = '0 found';
+        epWrap.innerHTML = '<span class="empty-msg">✓ No sensitive endpoints found</span>';
+      }
+
+      // Secrets
+      const secretsEl = document.getElementById('secretsDetail');
+      const isClean = !data.leakedSecrets || data.leakedSecrets.trim() === '' || data.leakedSecrets === 'none';
+      if (isClean) {
+        secretsEl.innerHTML = '<span class="empty-msg">✓ No leaked credentials detected</span>';
+      } else {
+        secretsEl.innerHTML = `
+          <div style="color:var(--red);font-family:var(--mono);font-size:11px;line-height:1.8;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:12px">
+            ⚠ ${data.leakedSecrets}
+          </div>`;
+      }
+
+      document.getElementById('resultPanel').style.display = 'block';
+      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── STATS ──
     async function loadStats() {
-        try {
-            const response = await fetch("/api/scan/stats");
-            const data = await response.json();
-            document.getElementById("totalScans").innerText = data.totalScans ?? '—';
-            document.getElementById("averageScore").innerText = Math.round(data.averageScore || 0);
-            document.getElementById("criticalSites").innerText = data.criticalSites ?? '—';
-        } catch (e) {
-            console.error("Stats load failed", e);
-        }
+      try {
+        const res = await fetch('http://localhost:9292/api/scan/stats');
+        const data = await res.json();
+        document.getElementById('totalScans').textContent = data.totalScans ?? '—';
+        document.getElementById('averageScore').textContent = Math.round(data.averageScore || 0);
+        document.getElementById('criticalSites').textContent = data.criticalSites ?? '—';
+      } catch(e) {
+        console.error('Stats failed', e);
+      }
     }
 
-    loadStats();
-    loadHistory();
-</script>
+    // ── DASHBOARD HISTORY (mini) ──
+    async function loadDashboardHistory() {
+      try {
+        const res = await fetch('http://localhost:9292/api/scan/history');
+        const data = await res.json();
+        const tbody = document.getElementById('dashboardHistory');
+        const lastScan = document.getElementById('lastScanTime');
 
+        if (!data.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No scans yet — run your first scan above.</td></tr>';
+          return;
+        }
+
+        if (data[0].createdAt) {
+          const d = new Date(data[0].createdAt);
+          lastScan.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        }
+
+        tbody.innerHTML = data.map(s => {
+          const { cls, letter } = gradeInfo(s.score);
+          return `<tr>
+            <td>${s.domain}</td>
+            <td style="color:var(--blue)">${s.score}/100</td>
+            <td><span class="grade-pill ${cls}">${letter}</span></td>
+            <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+            <td style="color:${s.openPorts?'var(--amber)':'var(--muted2)'}">${s.openPorts || '—'}</td>
+            <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
+          </tr>`;
+        }).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    // ── FULL HISTORY ──
+    async function loadHistory() {
+      try {
+        const res = await fetch('http://localhost:9292/api/scan/history');
+        const data = await res.json();
+        const tbody = document.getElementById('historyTableBody');
+
+        if (!data.length) {
+          tbody.innerHTML = '<tr><td colspan="11" class="empty-row">No scan history yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map((s, i) => {
+          const { cls, letter } = gradeInfo(s.score);
+          const date = s.createdAt ? new Date(s.createdAt).toLocaleString() : '—';
+          const dirCount = s.directoryFindings ? s.directoryFindings.split(',').filter(Boolean).length : 0;
+          return `<tr>
+            <td style="color:var(--muted2)">${i+1}</td>
+            <td>${s.domain}</td>
+            <td style="color:var(--blue)">${s.score}/100</td>
+            <td><span class="grade-pill ${cls}">${letter}</span></td>
+            <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+            <td>${s.cspEnabled   ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+            <td>${s.hstsEnabled  ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+            <td style="color:${s.openPorts?'var(--amber)':'var(--muted2)'};font-size:10px">${s.openPorts||'None'}</td>
+            <td style="color:${dirCount?'var(--red)':'var(--muted2)'}">${dirCount || '—'}</td>
+            <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
+            <td style="color:var(--muted2);font-size:10px">${date}</td>
+          </tr>`;
+        }).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    // ── REPORTS ──
+    async function loadReports() {
+      try {
+        const res = await fetch('http://localhost:9292/api/scan/history');
+        const data = await res.json();
+        const grid = document.getElementById('reportsGrid');
+
+        if (!data.length) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;font-family:var(--mono);font-size:12px;color:var(--muted2)">No reports yet. Run a scan first.</div>';
+          return;
+        }
+
+        grid.innerHTML = data.map(s => {
+          const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—';
+          const { cls, letter } = gradeInfo(s.score);
+          return `
+            <div class="report-card">
+              <div class="report-card-icon">📄</div>
+              <div class="report-card-domain">${s.domain}</div>
+              <div class="report-card-date">${date} · Grade <span class="grade-pill ${cls}">${letter}</span></div>
+              <a class="report-dl-btn" href="http://localhost:9292/api/report/${s.id}" target="_blank">
+                ⬇ Download PDF Report
+              </a>
+            </div>`;
+        }).join('');
+      } catch(e) { console.error(e); }
+    }
+
+    // ── HELPERS ──
+    function scoreToGrade(s) {
+      if (s >= 90) return 'A+';
+      if (s >= 80) return 'A';
+      if (s >= 70) return 'B';
+      if (s >= 60) return 'C';
+      if (s >= 50) return 'D';
+      return 'F';
+    }
+
+    function gradeInfo(score) {
+      if (score >= 80) return { cls:'g-a', letter:'A' };
+      if (score >= 65) return { cls:'g-b', letter:'B' };
+      if (score >= 50) return { cls:'g-c', letter:'C' };
+      return { cls:'g-d', letter:'D' };
+    }
+
+    // ── INIT ──
+    loadStats();
+    loadDashboardHistory();
+</script>
 </body>
 </html>

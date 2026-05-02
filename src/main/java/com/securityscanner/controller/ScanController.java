@@ -7,6 +7,7 @@ import com.securityscanner.service.ScanService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,14 +33,15 @@ public class ScanController {
 
     @GetMapping("/history")
     public ResponseEntity<List<WebsiteScan>> getHistory() {
-        return ResponseEntity.ok(scanService.getRecentScan());
+        return ResponseEntity.ok(websiteScanRepository.findAll(
+                Sort.by(Sort.Direction.DESC, "createdAt"))); // ✅ return ALL, not just top 5
     }
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
         Map<String, Object> stats = new HashMap<>();
-        stats.put("totalScans",   websiteScanRepository.getTotalScans());
-        stats.put("averageScore", websiteScanRepository.getAverageScore());
+        stats.put("totalScans",    websiteScanRepository.getTotalScans());
+        stats.put("averageScore",  websiteScanRepository.getAverageScore());
         stats.put("criticalSites", websiteScanRepository.getCriticalSites());
         return ResponseEntity.ok(stats);
     }
