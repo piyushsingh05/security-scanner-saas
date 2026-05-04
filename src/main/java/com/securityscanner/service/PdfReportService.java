@@ -101,7 +101,8 @@ public class PdfReportService {
         cursor = drawHeader(cs, cursor, scan);           // branding bar
         cursor = drawDomainScoreCard(cs, cursor, scan);  // domain + score
         cursor = drawSecurityChecks(cs, cursor, scan);   // HTTPS / CSP / HSTS / X-Frame
-        cursor = drawEndpointsCard(cs, cursor, scan);    // sensitive endpoints
+        cursor = drawEndpointsCard(cs, cursor, scan);// sensitive endpoint
+        cursor = drawDirectoryScan(cs, cursor, scan);
         cursor = drawSslPortsRow(cs, cursor, scan);      // SSL cert + open ports
         cursor = drawLeakedSecrets(cs, cursor, scan);    // leaked secrets
         drawRecommendations(cs, cursor, scan);    // recommendations (bottom)
@@ -249,6 +250,45 @@ public class PdfReportService {
         } else {
             drawText(cs, ITALIC, 8, TEXT_GRAY, MARGIN + 12, y + 14,
                     "No sensitive endpoints detected");
+        }
+
+        return y - 10;
+    }
+
+    private float drawDirectoryScan(PDPageContentStream cs, float cursor, WebsiteScan scan)
+            throws IOException {
+
+        float h = 65;
+        float y = cursor - h;
+
+        fillRect(cs, MARGIN, y, PW - MARGIN * 2, h, CARD_BG);
+        strokeRect(cs, MARGIN, y, PW - MARGIN * 2, h, BORDER, 0.6f);
+
+        drawText(cs, BOLD, 8, ACCENT_CYAN, MARGIN + 12, y + h - 14,
+                "DIRECTORY SCAN RESULTS");
+        fillRect(cs, MARGIN + 12, y + h - 16, 150, 1, ACCENT_CYAN);
+
+        String dirs = scan.getDirectoryFindings();
+
+        if (dirs != null && !dirs.isBlank()) {
+            float px = MARGIN + 12;
+
+            for (String d : dirs.split(",")) {
+                if (d.isBlank()) continue;
+
+                float pw = pillWidth(d.trim());
+
+                fillRect(cs, px, y + 10, pw, 18, hex("#1F3A5C"));
+                drawText(cs, REGULAR, 8, ACCENT_CYAN, px + 7, y + 14, d.trim());
+
+                px += pw + 6;
+
+                if (px > PW - MARGIN - 80) break;
+            }
+
+        } else {
+            drawText(cs, ITALIC, 8, TEXT_GRAY, MARGIN + 12, y + 14,
+                    "No directories found");
         }
 
         return y - 10;

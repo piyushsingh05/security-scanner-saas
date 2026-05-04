@@ -70,6 +70,8 @@
         }
         @keyframes scanline { 0%{top:-2px} 100%{top:100vh} }
 
+
+
         /* ── LAYOUT ── */
         .shell {
           display:flex;
@@ -1112,11 +1114,232 @@
           .result-grid{grid-template-columns:1fr}
           .res-card.full{grid-column:auto}
         }
+
+        /* ── MODERN LOGIN ── */
+        .grid-bg {
+          position: fixed;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(56,189,248,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(56,189,248,0.05) 1px, transparent 1px);
+          background-size: 40px 40px;
+          animation: moveGrid 20s linear infinite;
+          z-index: 0;
+          pointer-events: none;
+        }
+
+        @keyframes moveGrid {
+          from { transform: translateY(0); }
+          to { transform: translateY(40px); }
+        }
+
+        .glow {
+          position: fixed;
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(56,189,248,0.15), transparent);
+          top: -100px;
+          left: -100px;
+          z-index: 0;
+          filter: blur(80px);
+          pointer-events: none;
+        }
+
+        .login-container {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          min-height: 100vh;
+          color: #e2e8f0;
+          background: radial-gradient(circle at top left, #0a0f1c, #050810);
+        }
+
+        .login-left {
+          flex: 1;
+          position: relative;
+          padding: clamp(28px, 6vh, 72px) 80px 60px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+        }
+
+        .brand h1 {
+          font-size: 48px;
+          font-weight: 700;
+          line-height: 1.25;
+          padding-top: 6px;
+          margin: 0;
+          background: linear-gradient(90deg, #38bdf8, #818cf8);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+          margin-top: 10px;
+          color: var(--muted2);
+          font-size: 14px;
+        }
+
+        .hero h2 {
+          margin-top: 24px;
+          font-size: 36px;
+          line-height: 1.2;
+        }
+
+        .hero p {
+          margin-top: 12px;
+          color: #94a3b8;
+          max-width: 520px;
+          line-height: 1.6;
+        }
+
+        .cta-btn {
+          margin-top: 18px;
+          padding: 11px 18px;
+          background: transparent;
+          border: 1px solid var(--blue);
+          color: var(--blue);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .cta-btn:hover { background: var(--blue); color: #021019; }
+
+        .points {
+          margin-top: 22px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          color: #cbd5f5;
+          font-size: 14px;
+        }
+
+        .preview-box {
+          margin-top: 28px;
+          width: 330px;
+          padding: 18px;
+          background: rgba(12,18,34,0.6);
+          border: 1px solid rgba(56,189,248,0.2);
+          border-radius: 12px;
+          backdrop-filter: blur(8px);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+        }
+
+        .preview-header {
+          font-size: 12px;
+          color: #94a3b8;
+          margin-bottom: 10px;
+          min-height: 18px;
+        }
+
+        .login-right {
+          width: 480px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+        }
+
+        .login-card {
+          width: 360px;
+          padding: 36px;
+          background: rgba(12,18,34,0.65);
+          border-radius: 16px;
+          border: 1px solid rgba(56,189,248,0.2);
+          box-shadow: 0 30px 100px rgba(0,0,0,0.75);
+          backdrop-filter: blur(14px);
+        }
+
+        .login-card h2 { font-size: 24px; margin-bottom: 4px; }
+        .sub { font-size: 12px; color: #64748b; margin-bottom: 18px; }
+
+        .login-card input {
+          width: 100%;
+          padding: 12px;
+          margin-bottom: 12px;
+          background: #111828;
+          border: 1px solid rgba(255,255,255,0.08);
+          color: #fff;
+          border-radius: 8px;
+          outline: none;
+        }
+
+        .login-card input:focus { border-color: var(--blue); }
+
+        .login-card button {
+          width: 100%;
+          padding: 12px;
+          background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+          border: none;
+          border-radius: 8px;
+          font-weight: 700;
+          cursor: pointer;
+          color: #071018;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .login-card button::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 200%;
+          height: 100%;
+          background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+          transition: 0.5s;
+        }
+
+        .login-card button:hover::after { left: 100%; }
+        .footer-note { margin-top: 14px; text-align: center; color: #64748b; font-size: 11px; }
+
+        @media (max-width:980px) {
+          .login-container { flex-direction: column; }
+          .login-right { width: 100%; padding-top: 0; }
+          .login-left { padding: 26px 20px; }
+        }
     </style>
 </head>
 <body>
-
-<div class="shell">
+<div class="grid-bg"></div>
+<div class="glow"></div>
+<div id="loginPage" class="login-container">
+    <div class="login-left">
+        <div class="brand">
+            <h1>SecuriScan</h1>
+            <p>Security Intelligence Platform</p>
+        </div>
+        <div class="hero">
+            <h2>Scan. Detect. Secure.</h2>
+            <p>Identify vulnerabilities, exposed endpoints, and misconfigurations in seconds. Built for developers and security engineers.</p>
+            <button class="cta-btn">Start Free Scan -></button>
+            <div class="points">
+                <div>⚡ Real-time security analysis</div>
+                <div>🛡 SSL, headers and port scanning</div>
+                <div>📊 Actionable risk scoring</div>
+            </div>
+            <div class="preview-box">
+                <div class="preview-header" id="typingText"></div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="loginPreviewFill"></div>
+                </div>
+                <div class="preview-results" id="results"></div>
+            </div>
+        </div>
+    </div>
+    <div class="login-right">
+        <div class="login-card">
+            <h2>Sign in</h2>
+            <p class="sub">Access your security dashboard</p>
+            <input id="username" placeholder="Username">
+            <input id="password" type="password" placeholder="Password">
+            <button onclick="login()">Login</button>
+            <div class="footer-note">SecuriScan © 2026</div>
+        </div>
+    </div>
+</div>
+<div class="shell" id="app" style="display:none">
 
     <!-- ── SIDEBAR ── -->
     <nav class="sidebar">
@@ -1342,7 +1565,7 @@
                     </div>
 
                     <div class="result-actions">
-                        <a class="action-btn primary" id="downloadPdfBtn" href="#" target="_blank">
+                        <a class="action-btn primary" id="downloadPdfBtn" href="#" role="button">
                             ⬇ Download PDF
                         </a>
                         <button class="action-btn" onclick="showPage('reports', document.querySelectorAll('.nav a')[4])">
@@ -1550,373 +1773,506 @@
 <div class="toast-wrap" id="toastWrap"></div>
 
 <script>
-    // ── NAV ──
-    function showPage(id, el) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
-      document.getElementById('page-' + id).classList.add('active');
-      document.getElementById('breadcrumbPage').textContent = id;
-      if (el) el.classList.add('active');
-      if (id === 'history') loadHistory();
-      if (id === 'reports') loadReports();
-      if (id === 'dashboard') { loadStats(); loadDashboardHistory(); }
+    function getToken() {
+      return localStorage.getItem("token");
     }
 
-    // ── FLAGS ──
-    function toggleFlag(el) {
-      el.classList.toggle('active');
+    function authHeaders(extra) {
+      const token = getToken();
+      const headers = Object.assign({}, extra || {});
+      if (token) {
+        headers["Authorization"] = "Bearer " + token;
+      }
+      return headers;
     }
 
-    // ── TOAST ──
-    function toast(msg, type='info') {
-      const icons = { success:'✓', error:'✗', info:'◈' };
-      const el = document.createElement('div');
-      el.className = `toast ${type}`;
-      el.innerHTML = `<span style="color:var(--${type==='success'?'green':type==='error'?'red':'blue'})">${icons[type]}</span> ${msg}`;
-      document.getElementById('toastWrap').appendChild(el);
-      setTimeout(() => el.remove(), 3500);
-    }
+    async function login() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
 
-    // ── PROGRESS ANIMATION ──
-    const steps = ['dns','https','headers','ssl','ports','dirs'];
-    let progressTimer = null;
-
-    function startProgress() {
-      document.getElementById('scanProgress').style.display = 'block';
-      let pct = 0;
-      let stepIdx = 0;
-
-      clearInterval(progressTimer);
-
-      // Reset
-      steps.forEach(s => {
-        const el = document.getElementById('step-'+s);
-        el.classList.remove('done','running');
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({username, password})
       });
 
-      progressTimer = setInterval(() => {
-        pct = Math.min(pct + 2, 92);
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('progressPct').textContent = pct + '%';
+      if (!res.ok) {
+        alert("Login failed");
+        return;
+      }
 
-        const newStepIdx = Math.floor(pct / (100 / steps.length));
-        if (newStepIdx !== stepIdx && newStepIdx <= steps.length) {
-          if (stepIdx < steps.length) {
-            document.getElementById('step-' + steps[stepIdx]).classList.remove('running');
-            document.getElementById('step-' + steps[stepIdx]).classList.add('done');
-            document.getElementById('step-' + steps[stepIdx]).textContent = '✓';
-          }
-          stepIdx = newStepIdx;
-          if (stepIdx < steps.length) {
-            document.getElementById('step-' + steps[stepIdx]).classList.add('running');
-          }
-        }
-      }, 280);
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      location.reload();
     }
 
-    function finishProgress() {
-      clearInterval(progressTimer);
-      document.getElementById('progressFill').style.width = '100%';
-      document.getElementById('progressPct').textContent = '100%';
-      steps.forEach(s => {
-        const el = document.getElementById('step-'+s);
-        el.classList.remove('running');
-        el.classList.add('done');
-        el.textContent = '✓';
+    async function checkAuth() {
+      const token = getToken();
+      if (!token) return false;
+
+      const res = await fetch("/api/auth/check", {
+        headers: { Authorization: "Bearer " + token }
       });
-      setTimeout(() => {
-        document.getElementById('scanProgress').style.display = 'none';
-      }, 800);
+
+      return res.ok;
     }
 
-    // ── SCORE RING ──
-    function setScoreRing(score) {
-      const circumference = 263.9;
-      const offset = circumference - (score / 100) * circumference;
-      const circle = document.getElementById('scoreRingCircle');
-      const color = score >= 75 ? '#34d399' : score >= 50 ? '#fbbf24' : '#f87171';
-      circle.style.stroke = color;
-      setTimeout(() => {
-        circle.style.strokeDashoffset = offset;
-      }, 100);
-      document.getElementById('scoreNum').textContent = score;
-      document.getElementById('scoreNum').style.color = color;
-    }
+    async function initApp() {
+      const token = getToken();
 
-    // ── MAIN SCAN ──
-    async function runScan() {
-      let domain = document.getElementById('domainInput').value.trim()
-        .replace(/https?:\/\//g,'').replace(/\//g,'');
-
-      if (!domain) { toast('Please enter a domain', 'error'); return; }
-
-      const btn = document.getElementById('runBtn');
-      document.getElementById('runBtnIcon').innerHTML = '<span class="spinner"></span>';
-      document.getElementById('runBtnText').textContent = 'SCANNING';
-      btn.disabled = true;
-
-      document.getElementById('resultPanel').style.display = 'none';
-      startProgress();
-      toast(`Scanning ${domain}...`, 'info');
+      if (!token) {
+        document.getElementById("loginPage").style.display = "flex";
+        document.getElementById("app").style.display = "none";
+        return;
+      }
 
       try {
-        const res = await fetch('http://localhost:9292/api/scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain })
+        const res = await fetch("/api/auth/check", {
+          headers: { Authorization: "Bearer " + token }
         });
 
-        if (!res.ok) throw new Error('Scan failed: ' + res.status);
-
-        const data = await res.json();
-        finishProgress();
-        renderResult(data, domain);
-        toast('Scan complete!', 'success');
-        loadStats();
-
-      } catch(e) {
-        finishProgress();
-        toast('Scan failed — check console', 'error');
+        if (res.ok) {
+          document.getElementById("loginPage").style.display = "none";
+          document.getElementById("app").style.display = "flex";
+          loadStats();
+          loadDashboardHistory();
+        } else {
+          localStorage.removeItem("token");
+          document.getElementById("loginPage").style.display = "flex";
+          document.getElementById("app").style.display = "none";
+        }
+      } catch (e) {
         console.error(e);
-      } finally {
-        document.getElementById('runBtnIcon').textContent = '⚡';
-        document.getElementById('runBtnText').textContent = 'EXECUTE';
-        btn.disabled = false;
+        localStorage.removeItem("token");
+        document.getElementById("loginPage").style.display = "flex";
+        document.getElementById("app").style.display = "none";
       }
     }
 
-    // ── RENDER RESULT ──
-    function renderResult(data, domain) {
-      // Score ring
-      setScoreRing(data.score || 0);
-
-      // Domain
-      document.getElementById('resultDomain').textContent = domain;
-
-      // Badges
-      const badges = document.getElementById('resultBadges');
-      badges.innerHTML = '';
-      const score = data.score || 0;
-      const grade = scoreToGrade(score);
-      const gradeColor = score >= 75 ? 'green' : score >= 50 ? 'amber' : 'red';
-      badges.innerHTML += `<span class="rbadge rbadge-${gradeColor}">Grade ${grade}</span>`;
-      if (data.httpsEnabled) badges.innerHTML += `<span class="rbadge rbadge-green">HTTPS ✓</span>`;
-      else badges.innerHTML += `<span class="rbadge rbadge-red">No HTTPS</span>`;
-      if (data.openPorts) badges.innerHTML += `<span class="rbadge rbadge-amber">Ports Open</span>`;
-      if (data.exposedEndpoints) badges.innerHTML += `<span class="rbadge rbadge-amber">Endpoints Exposed</span>`;
-      if (data.leakedSecrets) badges.innerHTML += `<span class="rbadge rbadge-red">Secrets Leaked!</span>`;
-
-      // PDF link
-      document.getElementById('downloadPdfBtn').href = 'http://localhost:9292/api/report/' + data.id;
-
-      // Security header checks
-      const checks = [
-        { label: 'HTTPS Enabled',      val: data.httpsEnabled },
-        { label: 'X-Frame-Options',    val: data.xFrameOptionsEnabled },
-        { label: 'Content-Security-Policy', val: data.cspEnabled },
-        { label: 'HSTS',               val: data.hstsEnabled },
-      ];
-
-      document.getElementById('checksList').innerHTML = checks.map(c => `
-        <div class="check-row">
-          <span class="check-name">${c.label}</span>
-          <span class="check-status ${c.val ? 'pass' : 'fail'}">
-            <span class="check-dot ${c.val ? 'pass' : 'fail'}"></span>
-            ${c.val ? 'ENABLED' : 'MISSING'}
-          </span>
-        </div>
-      `).join('');
-
-      // SSL
-      document.getElementById('sslDetail').textContent = data.sslDetails || 'No SSL data available';
-
-      // Open ports
-      const portsWrap = document.getElementById('portsTags');
-      const portsCount = document.getElementById('portsCount');
-      if (data.openPorts) {
-        const ports = data.openPorts.split(',').map(p => p.trim()).filter(Boolean);
-        portsCount.textContent = ports.length + ' found';
-        const dangerPorts = ['21','22','23','25','3306','5432','6379','27017'];
-        portsWrap.innerHTML = ports.map(p => {
-          const num = p.split(' ')[0];
-          const isDanger = dangerPorts.some(d => num.startsWith(d));
-          return `<span class="tag-pill ${isDanger ? 'red' : 'blue'}">${p}</span>`;
-        }).join('');
-      } else {
-        portsCount.textContent = '0 found';
-        portsWrap.innerHTML = '<span class="empty-msg">✓ No risky ports detected</span>';
-      }
-
-      // Directory scan
-      const dirsWrap = document.getElementById('dirsTags');
-      const dirsCount = document.getElementById('dirsCount');
-      if (data.directoryFindings) {
-        const dirs = data.directoryFindings.split(',').map(d => d.trim()).filter(Boolean);
-        dirsCount.textContent = dirs.length + ' found';
-        dirsWrap.innerHTML = dirs.map(d => {
-          const is200 = d.includes('200');
-          const is403 = d.includes('403');
-          return `<span class="tag-pill ${is200 ? 'red' : is403 ? 'amber' : 'blue'}">${d}</span>`;
-        }).join('');
-      } else {
-        dirsCount.textContent = '0 found';
-        dirsWrap.innerHTML = '<span class="empty-msg">✓ No exposed directories</span>';
-      }
-
-      // Endpoints
-      const epWrap = document.getElementById('endpointsTags');
-      const epCount = document.getElementById('endpointsCount');
-      if (data.exposedEndpoints) {
-        const eps = data.exposedEndpoints.split(',').map(e => e.trim()).filter(Boolean);
-        epCount.textContent = eps.length + ' found';
-        epWrap.innerHTML = eps.map(e => `<span class="tag-pill">${e}</span>`).join('');
-      } else {
-        epCount.textContent = '0 found';
-        epWrap.innerHTML = '<span class="empty-msg">✓ No sensitive endpoints found</span>';
-      }
-
-      // Secrets
-      const secretsEl = document.getElementById('secretsDetail');
-      const isClean = !data.leakedSecrets || data.leakedSecrets.trim() === '' || data.leakedSecrets === 'none';
-      if (isClean) {
-        secretsEl.innerHTML = '<span class="empty-msg">✓ No leaked credentials detected</span>';
-      } else {
-        secretsEl.innerHTML = `
-          <div style="color:var(--red);font-family:var(--mono);font-size:11px;line-height:1.8;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:12px">
-            ⚠ ${data.leakedSecrets}
-          </div>`;
-      }
-
-      document.getElementById('resultPanel').style.display = 'block';
-      document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // ── STATS ──
-    async function loadStats() {
-      try {
-        const res = await fetch('http://localhost:9292/api/scan/stats');
-        const data = await res.json();
-        document.getElementById('totalScans').textContent = data.totalScans ?? '—';
-        document.getElementById('averageScore').textContent = Math.round(data.averageScore || 0);
-        document.getElementById('criticalSites').textContent = data.criticalSites ?? '—';
-      } catch(e) {
-        console.error('Stats failed', e);
-      }
-    }
-
-    // ── DASHBOARD HISTORY (mini) ──
-    async function loadDashboardHistory() {
-      try {
-        const res = await fetch('http://localhost:9292/api/scan/history');
-        const data = await res.json();
-        const tbody = document.getElementById('dashboardHistory');
-        const lastScan = document.getElementById('lastScanTime');
-
-        if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No scans yet — run your first scan above.</td></tr>';
-          return;
+    initApp();
+        // ── NAV ──
+        function showPage(id, el) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+          document.getElementById('page-' + id).classList.add('active');
+          document.getElementById('breadcrumbPage').textContent = id;
+          if (el) el.classList.add('active');
+          if (id === 'history') loadHistory();
+          if (id === 'reports') loadReports();
+          if (id === 'dashboard') { loadStats(); loadDashboardHistory(); }
         }
 
-        if (data[0].createdAt) {
-          const d = new Date(data[0].createdAt);
-          lastScan.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+        // ── FLAGS ──
+        function toggleFlag(el) {
+          el.classList.toggle('active');
         }
 
-        tbody.innerHTML = data.map(s => {
-          const { cls, letter } = gradeInfo(s.score);
-          return `<tr>
-            <td>${s.domain}</td>
-            <td style="color:var(--blue)">${s.score}/100</td>
-            <td><span class="grade-pill ${cls}">${letter}</span></td>
-            <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
-            <td style="color:${s.openPorts?'var(--amber)':'var(--muted2)'}">${s.openPorts || '—'}</td>
-            <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
-          </tr>`;
-        }).join('');
-      } catch(e) { console.error(e); }
-    }
-
-    // ── FULL HISTORY ──
-    async function loadHistory() {
-      try {
-        const res = await fetch('http://localhost:9292/api/scan/history');
-        const data = await res.json();
-        const tbody = document.getElementById('historyTableBody');
-
-        if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="11" class="empty-row">No scan history yet.</td></tr>';
-          return;
+        // ── TOAST ──
+        function toast(msg, type='info') {
+          const icons = { success:'✓', error:'✗', info:'◈' };
+          const el = document.createElement('div');
+          el.className = `toast ${type}`;
+          el.innerHTML = `<span style="color:var(--${type==='success'?'green':type==='error'?'red':'blue'})">${icons[type]}</span> ${msg}`;
+          document.getElementById('toastWrap').appendChild(el);
+          setTimeout(() => el.remove(), 3500);
         }
 
-        tbody.innerHTML = data.map((s, i) => {
-          const { cls, letter } = gradeInfo(s.score);
-          const date = s.createdAt ? new Date(s.createdAt).toLocaleString() : '—';
-          const dirCount = s.directoryFindings ? s.directoryFindings.split(',').filter(Boolean).length : 0;
-          return `<tr>
-            <td style="color:var(--muted2)">${i+1}</td>
-            <td>${s.domain}</td>
-            <td style="color:var(--blue)">${s.score}/100</td>
-            <td><span class="grade-pill ${cls}">${letter}</span></td>
-            <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
-            <td>${s.cspEnabled   ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
-            <td>${s.hstsEnabled  ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
-            <td style="color:${s.openPorts?'var(--amber)':'var(--muted2)'};font-size:10px">${s.openPorts||'None'}</td>
-            <td style="color:${dirCount?'var(--red)':'var(--muted2)'}">${dirCount || '—'}</td>
-            <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
-            <td style="color:var(--muted2);font-size:10px">${date}</td>
-          </tr>`;
-        }).join('');
-      } catch(e) { console.error(e); }
-    }
+        // ── PROGRESS ANIMATION ──
+        const steps = ['dns','https','headers','ssl','ports','dirs'];
+        let progressTimer = null;
 
-    // ── REPORTS ──
-    async function loadReports() {
-      try {
-        const res = await fetch('http://localhost:9292/api/scan/history');
-        const data = await res.json();
-        const grid = document.getElementById('reportsGrid');
+        function startProgress() {
+          document.getElementById('scanProgress').style.display = 'block';
+          let pct = 0;
+          let stepIdx = 0;
 
-        if (!data.length) {
-          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;font-family:var(--mono);font-size:12px;color:var(--muted2)">No reports yet. Run a scan first.</div>';
-          return;
+          clearInterval(progressTimer);
+
+          // Reset
+          steps.forEach(s => {
+            const el = document.getElementById('step-'+s);
+            el.classList.remove('done','running');
+          });
+
+          progressTimer = setInterval(() => {
+            pct = Math.min(pct + 2, 92);
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressPct').textContent = pct + '%';
+
+            const newStepIdx = Math.floor(pct / (100 / steps.length));
+            if (newStepIdx !== stepIdx && newStepIdx <= steps.length) {
+              if (stepIdx < steps.length) {
+                document.getElementById('step-' + steps[stepIdx]).classList.remove('running');
+                document.getElementById('step-' + steps[stepIdx]).classList.add('done');
+                document.getElementById('step-' + steps[stepIdx]).textContent = '✓';
+              }
+              stepIdx = newStepIdx;
+              if (stepIdx < steps.length) {
+                document.getElementById('step-' + steps[stepIdx]).classList.add('running');
+              }
+            }
+          }, 280);
         }
 
-        grid.innerHTML = data.map(s => {
-          const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—';
-          const { cls, letter } = gradeInfo(s.score);
-          return `
-            <div class="report-card">
-              <div class="report-card-icon">📄</div>
-              <div class="report-card-domain">${s.domain}</div>
-              <div class="report-card-date">${date} · Grade <span class="grade-pill ${cls}">${letter}</span></div>
-              <a class="report-dl-btn" href="http://localhost:9292/api/report/${s.id}" target="_blank">
-                ⬇ Download PDF Report
-              </a>
-            </div>`;
-        }).join('');
-      } catch(e) { console.error(e); }
+        function finishProgress() {
+          clearInterval(progressTimer);
+          document.getElementById('progressFill').style.width = '100%';
+          document.getElementById('progressPct').textContent = '100%';
+          steps.forEach(s => {
+            const el = document.getElementById('step-'+s);
+            el.classList.remove('running');
+            el.classList.add('done');
+            el.textContent = '✓';
+          });
+          setTimeout(() => {
+            document.getElementById('scanProgress').style.display = 'none';
+          }, 800);
+        }
+
+        // ── SCORE RING ──
+        function setScoreRing(score) {
+          const circumference = 263.9;
+          const offset = circumference - (score / 100) * circumference;
+          const circle = document.getElementById('scoreRingCircle');
+          const color = score >= 75 ? '#34d399' : score >= 50 ? '#fbbf24' : '#f87171';
+          circle.style.stroke = color;
+          setTimeout(() => {
+            circle.style.strokeDashoffset = offset;
+          }, 100);
+          document.getElementById('scoreNum').textContent = score;
+          document.getElementById('scoreNum').style.color = color;
+        }
+
+        // ── MAIN SCAN ──
+        async function runScan() {
+          let domain = document.getElementById('domainInput').value.trim()
+            .replace(/https?:\/\//g,'').replace(/\//g,'');
+
+          if (!domain) { toast('Please enter a domain', 'error'); return; }
+
+          const btn = document.getElementById('runBtn');
+          document.getElementById('runBtnIcon').innerHTML = '<span class="spinner"></span>';
+          document.getElementById('runBtnText').textContent = 'SCANNING';
+          btn.disabled = true;
+
+          document.getElementById('resultPanel').style.display = 'none';
+          startProgress();
+          toast(`Scanning ${domain}...`, 'info');
+
+          try {
+           const res = await fetch('/api/scan', {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ domain })
+    });
+            if (!res.ok) throw new Error('Scan failed: ' + res.status);
+
+            const data = await res.json();
+            finishProgress();
+            renderResult(data, domain);
+            toast('Scan complete!', 'success');
+            loadStats();
+
+          } catch(e) {
+            finishProgress();
+            toast('Scan failed — check console', 'error');
+            console.error(e);
+          } finally {
+            document.getElementById('runBtnIcon').textContent = '⚡';
+            document.getElementById('runBtnText').textContent = 'EXECUTE';
+            btn.disabled = false;
+          }
+        }
+
+        // ── RENDER RESULT ──
+        function renderResult(data, domain) {
+          // Score ring
+          setScoreRing(data.score || 0);
+
+          // Domain
+          document.getElementById('resultDomain').textContent = domain;
+
+          // Badges
+          const badges = document.getElementById('resultBadges');
+          badges.innerHTML = '';
+          const score = data.score || 0;
+          const grade = scoreToGrade(score);
+          const gradeColor = score >= 75 ? 'green' : score >= 50 ? 'amber' : 'red';
+          badges.innerHTML += `<span class="rbadge rbadge-${gradeColor}">Grade ${grade}</span>`;
+          if (data.httpsEnabled) badges.innerHTML += `<span class="rbadge rbadge-green">HTTPS ✓</span>`;
+          else badges.innerHTML += `<span class="rbadge rbadge-red">No HTTPS</span>`;
+          if (data.openPorts) badges.innerHTML += `<span class="rbadge rbadge-amber">Ports Open</span>`;
+          if (data.exposedEndpoints) badges.innerHTML += `<span class="rbadge rbadge-amber">Endpoints Exposed</span>`;
+          if (data.leakedSecrets) badges.innerHTML += `<span class="rbadge rbadge-red">Secrets Leaked!</span>`;
+
+          // PDF: must use fetch + blob (JWT is not sent on plain <a href> navigation)
+          const dl = document.getElementById('downloadPdfBtn');
+          dl.href = '#';
+          dl.onclick = function (e) {
+            e.preventDefault();
+            downloadReport(data.id);
+          };
+
+          // Security header checks
+          const checks = [
+            { label: 'HTTPS Enabled',      val: data.httpsEnabled },
+            { label: 'X-Frame-Options',    val: data.xFrameOptionsEnabled },
+            { label: 'Content-Security-Policy', val: data.cspEnabled },
+            { label: 'HSTS',               val: data.hstsEnabled },
+          ];
+
+          document.getElementById('checksList').innerHTML = checks.map(c => `
+            <div class="check-row">
+              <span class="check-name">${c.label}</span>
+              <span class="check-status ${c.val ? 'pass' : 'fail'}">
+                <span class="check-dot ${c.val ? 'pass' : 'fail'}"></span>
+                ${c.val ? 'ENABLED' : 'MISSING'}
+              </span>
+            </div>
+          `).join('');
+
+          // SSL
+          document.getElementById('sslDetail').textContent = data.sslDetails || 'No SSL data available';
+
+          // Open ports
+          const portsWrap = document.getElementById('portsTags');
+          const portsCount = document.getElementById('portsCount');
+          if (data.openPorts) {
+            const ports = data.openPorts.split(',').map(p => p.trim()).filter(Boolean);
+            portsCount.textContent = ports.length + ' found';
+            const dangerPorts = ['21','22','23','25','3306','5432','6379','27017'];
+            portsWrap.innerHTML = ports.map(p => {
+              const num = p.split(' ')[0];
+              const isDanger = dangerPorts.some(d => num.startsWith(d));
+              return `<span class="tag-pill ${isDanger ? 'red' : 'blue'}">${p}</span>`;
+            }).join('');
+          } else {
+            portsCount.textContent = '0 found';
+            portsWrap.innerHTML = '<span class="empty-msg">✓ No risky ports detected</span>';
+          }
+
+          // Directory scan
+          const dirsWrap = document.getElementById('dirsTags');
+          const dirsCount = document.getElementById('dirsCount');
+          if (data.directoryFindings) {
+            const dirs = data.directoryFindings.split(',').map(d => d.trim()).filter(Boolean);
+            dirsCount.textContent = dirs.length + ' found';
+            dirsWrap.innerHTML = dirs.map(d => {
+              const is200 = d.includes('200');
+              const is403 = d.includes('403');
+              return `<span class="tag-pill ${is200 ? 'red' : is403 ? 'amber' : 'blue'}">${d}</span>`;
+            }).join('');
+          } else {
+            dirsCount.textContent = '0 found';
+            dirsWrap.innerHTML = '<span class="empty-msg">✓ No exposed directories</span>';
+          }
+
+          // Endpoints
+          const epWrap = document.getElementById('endpointsTags');
+          const epCount = document.getElementById('endpointsCount');
+          if (data.exposedEndpoints) {
+            const eps = data.exposedEndpoints.split(',').map(e => e.trim()).filter(Boolean);
+            epCount.textContent = eps.length + ' found';
+            epWrap.innerHTML = eps.map(e => `<span class="tag-pill">${e}</span>`).join('');
+          } else {
+            epCount.textContent = '0 found';
+            epWrap.innerHTML = '<span class="empty-msg">✓ No sensitive endpoints found</span>';
+          }
+
+          // Secrets
+          const secretsEl = document.getElementById('secretsDetail');
+          const isClean = !data.leakedSecrets || data.leakedSecrets.trim() === '' || data.leakedSecrets === 'none';
+          if (isClean) {
+            secretsEl.innerHTML = '<span class="empty-msg">✓ No leaked credentials detected</span>';
+          } else {
+            secretsEl.innerHTML = `
+              <div style="color:var(--red);font-family:var(--mono);font-size:11px;line-height:1.8;background:rgba(248,113,113,0.06);border:1px solid rgba(248,113,113,0.2);border-radius:8px;padding:12px">
+                ⚠ ${data.leakedSecrets}
+              </div>`;
+          }
+
+          document.getElementById('resultPanel').style.display = 'block';
+          document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── STATS ──
+        async function loadStats() {
+          try {
+            const res = await fetch('/api/scan/stats', { headers: authHeaders() });
+            const data = await res.json();
+            document.getElementById('totalScans').textContent = data.totalScans ?? '—';
+            document.getElementById('averageScore').textContent = Math.round(data.averageScore || 0);
+            document.getElementById('criticalSites').textContent = data.criticalSites ?? '—';
+          } catch(e) {
+            console.error('Stats failed', e);
+          }
+        }
+
+        // ── DASHBOARD HISTORY (mini) ──
+        async function loadDashboardHistory() {
+          try {
+            const res = await fetch('/api/scan/history', { headers: authHeaders() });
+            const data = await res.json();
+            const tbody = document.getElementById('dashboardHistory');
+            const lastScan = document.getElementById('lastScanTime');
+
+            if (!data.length) {
+              tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No scans yet — run your first scan above.</td></tr>';
+              return;
+            }
+
+            if (data[0].createdAt) {
+              const d = new Date(data[0].createdAt);
+              lastScan.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+            }
+
+           const recent = data.slice(0,5);
+
+           tbody.innerHTML = recent.map(s => {
+              const { cls, letter } = gradeInfo(s.score);
+              return `<tr>
+                <td>${s.domain}</td>
+                <td style="color:var(--blue)">${s.score}/100</td>
+                <td><span class="grade-pill ${cls}">${letter}</span></td>
+                <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+                <td style="color:var(--muted2)">Hidden</td>
+                <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
+              </tr>`;
+            }).join('');
+          } catch(e) { console.error(e); }
+        }
+
+        // ── FULL HISTORY ──
+        async function loadHistory() {
+          try {
+            const res = await fetch('/api/scan/history', { headers: authHeaders() });
+            const data = await res.json();
+            const tbody = document.getElementById('historyTableBody');
+
+            if (!data.length) {
+              tbody.innerHTML = '<tr><td colspan="11" class="empty-row">No scan history yet.</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = data.map((s, i) => {
+              const { cls, letter } = gradeInfo(s.score);
+              const date = s.createdAt ? new Date(s.createdAt).toLocaleString() : '—';
+              const dirCount = s.directoryFindings ? s.directoryFindings.split(',').filter(Boolean).length : 0;
+              return `<tr>
+                <td style="color:var(--muted2)">${i+1}</td>
+                <td>${s.domain}</td>
+                <td style="color:var(--blue)">${s.score}/100</td>
+                <td><span class="grade-pill ${cls}">${letter}</span></td>
+                <td>${s.httpsEnabled ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+                <td>${s.cspEnabled   ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+                <td>${s.hstsEnabled  ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}</td>
+                <td style="color:${s.openPorts?'var(--amber)':'var(--muted2)'};font-size:10px">${s.openPorts||'None'}</td>
+                <td style="color:${dirCount?'var(--red)':'var(--muted2)'}">${dirCount || '—'}</td>
+                <td><span class="status-chip"><span class="status-dot" style="width:5px;height:5px"></span>${s.status||'Completed'}</span></td>
+                <td style="color:var(--muted2);font-size:10px">${date}</td>
+              </tr>`;
+            }).join('');
+          } catch(e) { console.error(e); }
+        }
+
+        // ── REPORTS ──
+        async function loadReports() {
+          try {
+            const res = await fetch('/api/scan/history', { headers: authHeaders() });
+            const data = await res.json();
+            const grid = document.getElementById('reportsGrid');
+
+            if (!data.length) {
+              grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:48px;font-family:var(--mono);font-size:12px;color:var(--muted2)">No reports yet. Run a scan first.</div>';
+              return;
+            }
+
+            grid.innerHTML = data.map(s => {
+              const date = s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—';
+              const { cls, letter } = gradeInfo(s.score);
+              return `
+                <div class="report-card">
+                  <div class="report-card-icon">📄</div>
+                  <div class="report-card-domain">${s.domain}</div>
+                  <div class="report-card-date">${date} · Grade <span class="grade-pill ${cls}">${letter}</span></div>
+                  <a class="report-dl-btn" onclick="downloadReport(${s.id})" target="_blank">
+                    ⬇ Download PDF Report
+                  </a>
+                </div>`;
+            }).join('');
+          } catch(e) { console.error(e); }
+        }
+
+        async function downloadReport(id) {
+      const res = await fetch('/api/report/' + id, {
+        headers: authHeaders()
+      });
+
+      if (!res.ok) {
+        alert("Unauthorized");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "report.pdf";
+      a.click();
+    }
+        // ── HELPERS ──
+        function scoreToGrade(s) {
+          if (s >= 90) return 'A+';
+          if (s >= 80) return 'A';
+          if (s >= 70) return 'B';
+          if (s >= 60) return 'C';
+          if (s >= 50) return 'D';
+          return 'F';
+        }
+
+        function gradeInfo(score) {
+          if (score >= 80) return { cls:'g-a', letter:'A' };
+          if (score >= 65) return { cls:'g-b', letter:'B' };
+          if (score >= 50) return { cls:'g-c', letter:'C' };
+          return { cls:'g-d', letter:'D' };
+        }
+
+        // ── INIT ──
+        // Dashboard data loads inside initApp() after JWT is validated
+</script>
+<script>
+    function runLoginPreviewAnimation() {
+      const text = "Scanning example.com...";
+      const typingNode = document.getElementById("typingText");
+      const progressNode = document.getElementById("loginPreviewFill");
+      const resultsNode = document.getElementById("results");
+      if (!typingNode || !progressNode || !resultsNode) return;
+
+      let i = 0;
+      function typeEffect() {
+        if (i < text.length) {
+          typingNode.textContent += text.charAt(i);
+          i += 1;
+          setTimeout(typeEffect, 35);
+        }
+      }
+
+      let width = 0;
+      const timer = setInterval(() => {
+        width = Math.min(width + 2, 100);
+        progressNode.style.width = width + "%";
+        if (width === 30) resultsNode.innerHTML += "<p>✔ SSL Enabled</p>";
+        if (width === 60) resultsNode.innerHTML += "<p>⚠ Missing Security Headers</p>";
+        if (width >= 100) {
+          resultsNode.innerHTML += "<p>✔ HTTPS Redirect Active</p>";
+          clearInterval(timer);
+        }
+      }, 55);
+
+      typeEffect();
     }
 
-    // ── HELPERS ──
-    function scoreToGrade(s) {
-      if (s >= 90) return 'A+';
-      if (s >= 80) return 'A';
-      if (s >= 70) return 'B';
-      if (s >= 60) return 'C';
-      if (s >= 50) return 'D';
-      return 'F';
-    }
-
-    function gradeInfo(score) {
-      if (score >= 80) return { cls:'g-a', letter:'A' };
-      if (score >= 65) return { cls:'g-b', letter:'B' };
-      if (score >= 50) return { cls:'g-c', letter:'C' };
-      return { cls:'g-d', letter:'D' };
-    }
-
-    // ── INIT ──
-    loadStats();
-    loadDashboardHistory();
+    runLoginPreviewAnimation();
 </script>
 </body>
 </html>
