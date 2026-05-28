@@ -7,20 +7,36 @@ import java.net.URL;
 
 @Service
 public class HttpsCheckService {
+
+    public HttpURLConnection createConnection(String domain)
+            throws Exception {
+
+        URL url = new URL("https://" + domain);
+
+        HttpURLConnection connection =
+                (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("GET");
+
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+
+        return connection;
+    }
+
     public boolean checkHttps(String domain) {
+
         try {
-            URL url = new URL("https://" + domain);
 
             HttpURLConnection connection =
-                    (HttpURLConnection) url.openConnection();
+                    createConnection(domain);
 
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(3000);
             connection.connect();
 
             return connection.getResponseCode() == 200;
 
         } catch (Exception e) {
+
             return false;
         }
     }

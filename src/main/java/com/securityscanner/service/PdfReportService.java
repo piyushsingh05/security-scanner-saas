@@ -101,6 +101,8 @@ public class PdfReportService {
         cursor = drawHeader(cs, cursor, scan);           // branding bar
         cursor = drawDomainScoreCard(cs, cursor, scan);  // domain + score
         cursor = drawSecurityChecks(cs, cursor, scan);   // HTTPS / CSP / HSTS / X-Frame
+        cursor = drawCorsFindings(cs, cursor, scan);
+        cursor = drawCookieFindings(cs, cursor, scan);
         cursor = drawEndpointsCard(cs, cursor, scan);// sensitive endpoint
         cursor = drawDirectoryScan(cs, cursor, scan);
         cursor = drawSslPortsRow(cs, cursor, scan);      // SSL cert + open ports
@@ -381,6 +383,104 @@ public class PdfReportService {
         return y - 10;
     }
 
+    private float drawCorsFindings(
+            PDPageContentStream cs,
+            float cursor,
+            WebsiteScan scan
+    ) throws IOException {
+
+        float h = 55;
+        float y = cursor - h;
+
+        fillRect(cs, MARGIN, y, PW - MARGIN * 2, h, CARD_BG);
+
+        strokeRect(
+                cs,
+                MARGIN,
+                y,
+                PW - MARGIN * 2,
+                h,
+                BORDER,
+                0.6f
+        );
+
+        drawText(
+                cs,
+                BOLD,
+                8,
+                ACCENT_CYAN,
+                MARGIN + 12,
+                y + h - 14,
+                "CORS SECURITY"
+        );
+
+        fillRect(
+                cs,
+                MARGIN + 12,
+                y + h - 16,
+                120,
+                1,
+                ACCENT_CYAN
+        );
+
+        String cors =
+                scan.getCorsFindings() != null
+                        ? clean(scan.getCorsFindings())
+                        : "No CORS findings";
+
+        Color statusColor = TEXT_GRAY;
+
+        if (cors.contains("CRITICAL")) {
+            statusColor = RED;
+        } else if (cors.contains("WARNING")) {
+            statusColor = YELLOW;
+        } else if (cors.contains("SAFE")) {
+            statusColor = GREEN;
+        }
+
+        fillCircle(cs, MARGIN + 18, y + 24, 5, statusColor);
+
+        drawText(
+                cs,
+                REGULAR,
+                8,
+                statusColor,
+                MARGIN + 30,
+                y + 20,
+                cors
+        );
+
+        return y - 10;
+    }
+
+    private float drawCookieFindings(PDPageContentStream cs, float cursor, WebsiteScan scan)
+            throws IOException {
+
+        float h = 55;
+        float y = cursor - h;
+
+        fillRect(cs, MARGIN, y, PW - MARGIN * 2, h, CARD_BG);
+        strokeRect(cs, MARGIN, y, PW - MARGIN * 2, h, BORDER, 0.6f);
+
+        drawText(cs, BOLD, 8, ACCENT_CYAN, MARGIN + 12, y + h - 14, "COOKIE SECURITY");
+        fillRect(cs, MARGIN + 12, y + h - 16, 120, 1, ACCENT_CYAN);
+
+        String cookie = scan.getCookieSecurityFindings() != null
+                ? clean(scan.getCookieSecurityFindings())
+                : "No cookie data";
+
+        Color statusColor = TEXT_GRAY;
+        if (cookie.contains("CRITICAL"))     statusColor = RED;
+        else if (cookie.contains("WARNING")) statusColor = YELLOW;
+        else if (cookie.contains("SAFE"))    statusColor = GREEN;
+        else if (cookie.contains("INFO"))    statusColor = ACCENT_CYAN;
+
+        fillCircle(cs, MARGIN + 18, y + 24, 5, statusColor);
+        drawText(cs, REGULAR, 8, statusColor, MARGIN + 30, y + 20, cookie);
+
+        return y - 10;
+    }
+
     private void drawRecommendations(PDPageContentStream cs, float cursor, WebsiteScan scan)
             throws IOException {
         // Build smart recommendations based on actual results
@@ -400,7 +500,18 @@ public class PdfReportService {
                 && !clean(scan.getLeakedSecrets()).equalsIgnoreCase("none")
                 && !clean(scan.getLeakedSecrets()).isBlank())
             recs.add(new String[]{"RED",    "URGENT: Rotate any exposed API keys or credentials immediately."});
-
+        if (scan.getCorsFindings() != null
+                && scan.getCorsFindings().contains("CRITICAL"))
+            recs.add(new String[]{"RED",
+                    "CRITICAL: Disable wildcard CORS with credentials — severe data exposure risk."});
+        else if (scan.getCorsFindings() != null
+                && scan.getCorsFindings().contains("WARNING"))
+            recs.add(new String[]{"YELLOW",
+                    "Restrict CORS policy — replace wildcard origin with specific trusted domains."});
+        if (scan.getCookieSecurityFindings() != null
+                && scan.getCookieSecurityFindings().contains("WARNING"))
+            recs.add(new String[]{"YELLOW",
+                    "Fix cookie flags: add Secure, HttpOnly and SameSite to all cookies."});
         // All clear — still show positive + improvement tips
         if (recs.isEmpty()) {
             recs.add(new String[]{"GREEN", "All critical security headers are correctly configured. Well done!"});

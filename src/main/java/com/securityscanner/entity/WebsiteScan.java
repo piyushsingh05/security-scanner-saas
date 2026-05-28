@@ -1,5 +1,6 @@
 package com.securityscanner.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,11 +26,22 @@ public class WebsiteScan {
     private Boolean cspEnabled;
     private Boolean hstsEnabled;
 
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(length = 2000)
     private String exposedEndpoints;
 
     @Column(length = 1000)
     private String sslDetails;
+
+    @Column(length = 1000)
+    private String corsFindings;
+
+    @Column(length = 1000)
+    private String cookieSecurityFindings;
 
     @Column(length = 1000)
     private String openPorts;
@@ -39,4 +51,5 @@ public class WebsiteScan {
 
     @Column(columnDefinition = "TEXT")
     private String directoryFindings;
+
 }

@@ -1,7 +1,9 @@
 package com.securityscanner.service;
 
 import com.securityscanner.dto.ScanRequest;
+import com.securityscanner.entity.User;
 import com.securityscanner.entity.WebsiteScan;
+import com.securityscanner.repository.DomainRepository;
 import com.securityscanner.repository.WebsiteScanRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,16 +23,19 @@ public class ScanService {
 
     private final WebsiteScanRepository    websiteScanRepository;
     private final PdfReportService         pdfReportService;
+    private final DomainRepository         domainRepository;
     private final HttpsCheckService        httpsCheckService;
     private final HeaderCheckService       headerCheckService;
     private final ScoreCalculator          scoreCalculator;
     private final SensitiveEndpointService sensitiveEndpointService;
     private final SSLCheckService          sslCheckService;
+    private final CorsCheckService         corsCheckService;
+    private final CookieSecurityService    cookieSecurityService;
     private final OpenPortScanService      openPortScanService;
     private final SecretLeakScannerService secretLeakScannerService;
     private final DirectoryScanService     directoryScanService;
 
-    public WebsiteScan createScan(ScanRequest request) {
+    public WebsiteScan createScan(ScanRequest request, User user) {
         String domain = request.getDomain().trim();
         log.info("[ScanService] Starting parallel scan for: {}", domain);
 
@@ -52,6 +57,12 @@ public class ScanService {
         CompletableFuture<List<OpenPortScanService.PortResult>> openPortsFuture =
                 CompletableFuture.supplyAsync(() -> openPortScanService.scanOpenPorts(domain));
 
+        CompletableFuture<String> corsFuture =
+                CompletableFuture.supplyAsync(() -> corsCheckService.checkCors(domain));
+
+        CompletableFuture<String> cookieFuture =
+                CompletableFuture.supplyAsync(() -> cookieSecurityService.checkCookieSecurity(domain));
+
         CompletableFuture<List<DirectoryScanService.DirectoryResult>> dirsFuture =
                 CompletableFuture.supplyAsync(() -> directoryScanService.scanDirectories(domain));
 
@@ -59,7 +70,7 @@ public class ScanService {
                 CompletableFuture.supplyAsync(() -> secretLeakScannerService.scanForLeaks(domain));
 
         // Wait for all to complete (max 25 seconds total)
-        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture , openPortsFuture , leaksFuture , dirsFuture)
+        CompletableFuture.allOf(httpsFuture, headersFuture, sslFuture, endpointsFuture, openPortsFuture, corsFuture, cookieFuture, leaksFuture , dirsFuture)
                 .orTimeout(25, TimeUnit.SECONDS)
                 .exceptionally(ex -> {
                     log.warn("[ScanService] Some checks timed out for {}: {}", domain, ex.getMessage());
@@ -83,6 +94,12 @@ public class ScanService {
                 : openPortsList.stream()
                 .map(OpenPortScanService.PortResult::toString)
                 .collect(Collectors.joining(", "));
+
+        String corsFindings =
+                getFutureSafe(corsFuture,
+                        "CORS check failed");
+
+        String cookieFindings = getFutureSafe(cookieFuture, "Cookie check failed");
 
         List<SecretLeakScannerService.LeakFinding> leakFindings =
                 getFutureSafe(leaksFuture, List.of());
@@ -118,14 +135,26 @@ public class ScanService {
                 .score(score)
                 .status("COMPLETED")
                 .sslDetails(sslDetails)
+                .corsFindings(corsFindings)
+                .cookieSecurityFindings(cookieFindings)
                 .exposedEndpoints(endpoints)
                 .openPorts(openPorts)
                 .directoryFindings(directoryFindings)
                 .leakedSecrets(leakedSecrets)
                 .createdAt(LocalDateTime.now())
+                .user(user)
+
                 .build();
 
         WebsiteScan savedScan = websiteScanRepository.save(scan);
+
+        // ── Update domain lastScore + lastScannedAt ──
+        domainRepository.findByUserEmailAndDomain(user.getEmail(), domain)
+                .ifPresent(d -> {
+                    d.setLastScore(score);
+                    d.setLastScannedAt(LocalDateTime.now());
+                    domainRepository.save(d);
+                });
 
         // PDF runs in background — user gets response immediately
         CompletableFuture.runAsync(() -> {

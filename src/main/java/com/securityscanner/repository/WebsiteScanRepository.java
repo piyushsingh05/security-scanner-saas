@@ -3,19 +3,23 @@ package com.securityscanner.repository;
 import com.securityscanner.entity.WebsiteScan;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface WebsiteScanRepository extends JpaRepository<WebsiteScan, Long> {
 
+
     List<WebsiteScan> findTop5ByOrderByCreatedAtDesc();
 
-    @Query("SELECT COUNT(w) FROM WebsiteScan w")
-    Long getTotalScans();
+    List<WebsiteScan> findByUserEmailOrderByCreatedAtDesc(String email);
 
-    @Query("SELECT AVG(w.score) FROM WebsiteScan w")
-    Double getAverageScore();
+    // ── Per-user stats (used by ScanController) ──
+    long countByUserEmail(String email);
 
-    @Query("SELECT COUNT(w) FROM WebsiteScan w WHERE w.score < 60")
-    Long getCriticalSites();
+    @Query("SELECT COALESCE(AVG(w.score), 0) FROM WebsiteScan w WHERE w.user.email = :email")
+    Double getAverageScoreByUserEmail(@Param("email") String email);
+
+    @Query("SELECT COUNT(w) FROM WebsiteScan w WHERE w.user.email = :email AND w.score < 50")
+    long getCriticalSitesByUserEmail(@Param("email") String email);
 }

@@ -14,8 +14,8 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
-    private long expiration;
+    // 6 hours in milliseconds — hardcoded, no need for property
+    private static final long EXPIRATION_MS = 6 * 60 * 60 * 1000L; // 21600000
 
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -25,7 +25,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_MS))
                 .signWith(getKey())
                 .compact();
     }
@@ -41,8 +41,16 @@ public class JwtUtil {
 
     public boolean isValid(String token) {
         try {
-            extractUsername(token);
-            return true;
+            Claims claims = Jwts.parser()
+                    .verifyWith(getKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
+            return claims.getExpiration().after(new Date());
+
+        } catch (ExpiredJwtException e) {
+            return false;
         } catch (Exception e) {
             return false;
         }
