@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface WebsiteScanRepository extends JpaRepository<WebsiteScan, Long> {
 
@@ -22,4 +23,9 @@ public interface WebsiteScanRepository extends JpaRepository<WebsiteScan, Long> 
 
     @Query("SELECT COUNT(w) FROM WebsiteScan w WHERE w.user.email = :email AND w.score < 50")
     long getCriticalSitesByUserEmail(@Param("email") String email);
+
+    Optional<WebsiteScan> findTopByDomainAndUserEmailOrderByCreatedAtDesc(
+            String domain, String email);
+
+    List<WebsiteScan> findTop2ByDomainAndUserEmailOrderByCreatedAtDesc(String domain, String userEmail);
 }

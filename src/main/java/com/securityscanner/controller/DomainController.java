@@ -49,4 +49,30 @@ public class DomainController {
         domainRepository.delete(d);
         return ResponseEntity.ok(Map.of("deleted", true));
     }
+
+
+    @PatchMapping("/{id}/settings")
+    public ResponseEntity<?> updateDomainSettings(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> body) {
+
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication().getName();
+
+        Domain d = domainRepository.findById(id).orElseThrow();
+        if (!d.getUser().getEmail().equals(email))
+            return ResponseEntity.status(403).body(Map.of("error", "Forbidden"));
+
+        if (body.containsKey("scanFrequency")) {
+            d.setScanFrequency(Domain.ScanFrequency
+                    .valueOf(body.get("scanFrequency").toString().toUpperCase()));
+        }
+
+        if (body.containsKey("emailAlertsEnabled")) {
+            d.setEmailAlertsEnabled((Boolean) body.get("emailAlertsEnabled"));
+        }
+
+        return ResponseEntity.ok(domainRepository.save(d));
+    }
+
 }

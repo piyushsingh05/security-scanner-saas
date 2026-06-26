@@ -40,4 +40,16 @@ public class Domain {
     public void prePersist() {
         this.addedAt = LocalDateTime.now();
     }
+
+    // --- NEW FIELDS ---
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private ScanFrequency scanFrequency = ScanFrequency.WEEKLY;
+
+    @Builder.Default
+    private Boolean emailAlertsEnabled = true;
+
+    public enum ScanFrequency {
+        DAILY, WEEKLY, MONTHLY
+    }
 }

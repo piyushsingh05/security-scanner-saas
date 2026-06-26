@@ -17,6 +17,12 @@ public class WebsiteScan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "domain_id")
+//    @JsonIgnore
+//    private Domain domain;
+
     private String domain;
     private String status;
     private Integer score;
@@ -30,6 +36,7 @@ public class WebsiteScan {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
 
     @Column(length = 2000)
     private String exposedEndpoints;
